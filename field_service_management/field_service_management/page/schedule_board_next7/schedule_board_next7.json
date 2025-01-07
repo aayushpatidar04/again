@@ -1,0 +1,27 @@
+{
+ "content": null,
+ "creation": "2024-11-12 16:23:11.843731",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-filter",
+ "idx": 0,
+ "modified": "2024-12-26 12:47:11.947947",
+ "modified_by": "Administrator",
+ "module": "Field Service Management",
+ "name": "schedule-board-next7",
+ "owner": "Administrator",
+ "page_name": "schedule-board-next7",
+ "roles": [
+  {
+   "role": "BMSCG Admin"
+  },
+  {
+   "role": "Service Coordinator"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Schedule Board: Next 7 Days"
+}

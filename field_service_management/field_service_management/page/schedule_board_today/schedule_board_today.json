@@ -1,0 +1,26 @@
+{
+ "content": null,
+ "creation": "2025-01-07 15:46:16.915404",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-01-07 15:46:16.915404",
+ "modified_by": "Administrator",
+ "module": "Field Service Management",
+ "name": "schedule-board-today",
+ "owner": "Administrator",
+ "page_name": "schedule-board-today",
+ "roles": [
+  {
+   "role": "BMSCG Admin"
+  },
+  {
+   "role": "Service Coordinator"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Schedule Board Today"
+}

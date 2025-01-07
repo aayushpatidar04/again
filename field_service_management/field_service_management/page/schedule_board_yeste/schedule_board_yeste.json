@@ -1,0 +1,27 @@
+{
+ "content": null,
+ "creation": "2024-11-08 17:02:53.200001",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-filter",
+ "idx": 0,
+ "modified": "2024-12-26 12:46:03.378788",
+ "modified_by": "Administrator",
+ "module": "Field Service Management",
+ "name": "schedule-board-yeste",
+ "owner": "Administrator",
+ "page_name": "schedule-board-yeste",
+ "roles": [
+  {
+   "role": "BMSCG Admin"
+  },
+  {
+   "role": "Service Coordinator"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Schedule Board Yesterday"
+}
