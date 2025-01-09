@@ -32,7 +32,7 @@
                     <div class="modal-header">
                         <div>
                             <h5 class="modal-title">Maintenance Visit and Technicians Location</h5>
-                            <p><img src="/files/red-marker.png" style="max-width: 25px;"> : Unscheduled | <img src="/files/green-marker.png" style="max-width: 25px;"> : Scheduled | <img src="/files/white-marker.png" style="max-width: 25px;"> : Fresh Installation | <img src="/files/black-marker.png" style="max-width: 25px;"> : Rescheduled | <img src="/files/blue-marker.png" style="max-width: 25px;"> : Site Survey | <img src="/files/yellow-marker.png" style="max-width: 25px;"> : Approval Pending | <img src="/files/green-marker51773a.png" style="max-width: 25px;"> : Technician </p>
+                            <p><img src="/files/red-marker.png" style="max-width: 25px;"> : Unscheduled | <img src="/files/green-marker.png" style="max-width: 25px;"> : Scheduled | <img src="/files/white-marker.png" style="max-width: 25px;"> : Fresh Installation | <img src="/files/black-marker.png" style="max-width: 25px;"> : Rescheduled | <img src="/files/blue-marker.png" style="max-width: 25px;"> : Site Survey | <img src="/files/yellow-marker.png" style="max-width: 25px;"> : Approval Pending | <img src="/files/technician.png" style="max-width: 25px;"> : Technician </p>
                         </div>
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
@@ -240,17 +240,20 @@
         <div class="card">
             <div class="card-header d-flex" style="justify-content: space-between;">
                 <h5>Service Technician Calendar</h5>
-                <div class="dropdown">
-                    <button class="btn btn-primary" type="button" id="select-day">
-                        Select Day
-                    </button>
-                    <ul id="select-day-menu" style="display: none; position: absolute; top: 100%; right: 0; z-index: 1000; background: white; list-style: none; padding: 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #ddd; width: 150px;">
-                        <li><a class="dropdown-item" href="/app/schedule-board-today">Today</a></li>
-                        <li><a class="dropdown-item" href="/app/schedule-board-yeste">Yesterday</a></li>
-                        <li><a class="dropdown-item" href="/app/schedule-tomorrow">Tomorrow</a></li>
-                        <li><a class="dropdown-item" href="/app/schedule-board-last7">Last 7 Days</a></li>
-                        <li><a class="dropdown-item" href="/app/schedule-board-next7">Next 7 Days</a></li>
-                    </ul>
+                <div class="d-flex">
+                    <a href="/app/maintenance-visit/new-maintenance-visit" class="btn btn-primary">Add Maintenance Visit</a>&nbsp;&nbsp;
+                    <div class="dropdown">
+                        <button class="btn btn-primary" type="button" id="select-day">
+                            Select Day
+                        </button>
+                        <ul id="select-day-menu" style="display: none; position: absolute; top: 100%; right: 0; z-index: 1000; background: white; list-style: none; padding: 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #ddd; width: 150px;">
+                            <li><a class="dropdown-item" href="/app/schedule-board-today">Today</a></li>
+                            <li><a class="dropdown-item" href="/app/schedule-board-yeste">Yesterday</a></li>
+                            <li><a class="dropdown-item" href="/app/schedule-tomorrow">Tomorrow</a></li>
+                            <li><a class="dropdown-item" href="/app/schedule-board-last7">Last 7 Days</a></li>
+                            <li><a class="dropdown-item" href="/app/schedule-board-next7">Next 7 Days</a></li>
+                        </ul>
+                    </div>                  
                 </div>                   
             </div>
             <div class="card-body">

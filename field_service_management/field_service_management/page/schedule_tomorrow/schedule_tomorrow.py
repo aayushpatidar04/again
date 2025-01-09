@@ -40,13 +40,16 @@ def get_context(context=None):
     if role_profile == "Service Coordinator Profile":
         # Fetch the user's territory from User Permissions
         
-        territory = frappe.db.get_value(
-            "User Permission", {"user": user, "allow": "Territory"}, "for_value"
+        territories = frappe.db.get_all(
+            "User Permission",
+            filters={"user": user, "allow": "Territory"},
+            fields=["for_value"]
         )
+        territory_list = [t["for_value"] for t in territories]
         # Fetch issues based on the user's territory
         issues = frappe.get_all(
             "Maintenance Visit",
-            filters={"territory": territory, "_assign": ""},
+            filters={"territory": ["in", territory_list], "_assign": ""},
             fields=[
                 "name",
                 "subject",
@@ -72,7 +75,7 @@ def get_context(context=None):
             tech_territory = frappe.db.get_value(
                 "User Permission", {"user": tech["email"], "allow": "Territory"}, "for_value"
             )
-            if tech_territory == territory:
+            if tech_territory in territory_list:
                 technician_list.append(tech)
         technicians = technician_list
     for issue in issues:
@@ -302,10 +305,10 @@ def get_context(context=None):
                     count += task_in_slot["duration_in_hours"] - 1
                 else:
                     if count == 0:
-                        html_content += f'<div style="width: 100px; border-right: 1px solid #000; background-color: cyan; border: 2px dashed #ccc; min-height: 40px;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1 drop-zone">-</div>'
+                        html_content += f'<div style="width: 100px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1 drop-zone">-</div>'
                     elif count % 1 == 0.5:
                         slot['time'] += timedelta(minutes=30)
-                        html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: cyan; border: 2px dashed #ccc; min-height: 40px;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1 drop-zone">-</div>'
+                        html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1 drop-zone">-</div>'
                         count -= 0.5
                     else:
                         count -= 1
@@ -504,6 +507,7 @@ def update_form_data(form_data):
 def get_live_locations():
 
     technicians = []
+    maintenance_visits = []
     technician_records = frappe.db.sql("""
         SELECT technician, latitude, longitude, time 
         FROM `tabLive Location` 
@@ -518,12 +522,52 @@ def get_live_locations():
             "technician": tech.technician,
             "latitude": tech.latitude,
             "longitude": tech.longitude
-        })    
-  
-    return {
-        "technicians": technicians
-    }
+        })
+    
+    maintenance_records = frappe.db.sql("""
+        SELECT name, delivery_addres, customer, maintenance_type, completion_status
+        FROM `tabMaintenance Visit`
+        WHERE completion_status != 'Fully Completed'
+    """, as_dict=True)
+    
 
+    for visit in maintenance_records:
+        visit_doc = frappe.get_doc("Maintenance Visit", visit.name)
+        #geolocation
+        
+        delivery_note_name = frappe.get_value(
+            "Serial No",
+            {"custom_item_current_installation_address": visit_doc.delivery_addres},
+            "custom_item_current_installation_address_name"
+        )
+        if not delivery_note_name:
+            frappe.throw(f"No Serial No found for address: {visit_doc.delivery_addres}")
+        address = frappe.get_doc("Address", delivery_note_name)
+        geolocation = address.geolocation
+        if geolocation:
+            # Check if geolocation is a string that needs to be loaded as JSON
+            if isinstance(geolocation, str):
+                try:
+                    geolocation = json.loads(geolocation)
+                except json.JSONDecodeError:
+                    frappe.log_error(f"Invalid geolocation data for address: {address.name}", "Field Service Management")
+                    geolocation = None
+            elif not isinstance(geolocation, dict):
+                frappe.log_error(f"Unexpected geolocation format for address: {address.name}", "Field Service Management")
+                geolocation = None
+
+        maintenance_visits.append({
+            "visit_id": visit.name,
+            "geolocation": geolocation,
+            "address": visit.delivery_addres,
+            "customer": visit.customer,
+            "type": visit.maintenance_type,
+            "status": visit.completion_status
+        })    
+    return {
+        "technicians": technicians,
+        "maintenance": maintenance_visits
+    }
 
 
 

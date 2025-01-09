@@ -107,7 +107,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 				geoDiv.data('mapInstance', map);
 
 				frappe.call({
-					method: "field_service_management.field_service_management.page.schedule_board.schedule_board.get_cords",
+					method: "field_service_management.field_service_management.page.schedule_tomorrow.schedule_tomorrow.get_cords",
 					callback: function (r) {
 						if (r.message) {
 							const technicians = r.message;
@@ -136,7 +136,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 
 							// Center the map on the customer's location
 							if (customerLat !== null && customerLng !== null) {
-								map.setView([customerLat, customerLng], 7);
+								map.setView([customerLat, customerLng], 13);
 								L.marker([customerLat, customerLng]).addTo(map)
 									.bindPopup('<b>Customer</b><br><b>Latitude:</b> ' + customerLat + ' <b>Longitude:</b> ' + customerLng).openPopup();
 							}
@@ -149,7 +149,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 
 							// Add technician markers
 							const greenIcon = L.icon({
-								iconUrl: '/files/green-marker51773a.png',
+								iconUrl: '/files/technician.png',
 								iconSize: [25, 41],
 								iconAnchor: [12, 41],
 								popupAnchor: [1, -34]
@@ -180,14 +180,14 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 			}
 
 			// Initialize the map
-			liveMap = L.map(mapContainerId).setView([10.790603876302452, 106.71873522574441], 5); // Initial view centered on India
+			liveMap = L.map(mapContainerId).setView([10.790603876302452, 106.71873522574441], 13); // Initial view centered on India
 			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				maxZoom: 19,
 				attribution: '&copy; OpenStreetMap contributors'
 			}).addTo(liveMap);
 
 			const technicianIcon = L.icon({
-				iconUrl: '/files/green-marker51773a.png',
+				iconUrl: '/files/technician.png',
 				iconSize: [25, 41],
 				iconAnchor: [12, 41],
 				popupAnchor: [1, -34]
@@ -233,10 +233,10 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 			// Function to fetch and display locations
 			function fetchAndDisplayLocations() {
 				frappe.call({
-					method: "field_service_management.field_service_management.page.schedule_board.schedule_board.get_live_locations",
+					method: "field_service_management.field_service_management.page.schedule_tomorrow.schedule_tomorrow.get_live_locations",
 					callback: function (r) {
 						if (r.message) {
-							const { technicians} = r.message;
+							const { technicians, maintenance} = r.message;
 
 							// Clear existing markers before adding new ones
 							liveMap.eachLayer(function (layer) {
@@ -253,57 +253,57 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 							});
 
 							// Add maintenance visit markers
-							// maintenance.forEach(visit => {
-							// 	let customerLat = null;
-							// 	let customerLng = null;
-							// 	if (visit.geolocation && visit.geolocation.features && Array.isArray(visit.geolocation.features)) {
-							// 		visit.geolocation.features.forEach(function(feature) {
-							// 			const { properties, geometry } = feature;
+							maintenance.forEach(visit => {
+								let customerLat = null;
+								let customerLng = null;
+								if (visit.geolocation && visit.geolocation.features && Array.isArray(visit.geolocation.features)) {
+									visit.geolocation.features.forEach(function(feature) {
+										const { properties, geometry } = feature;
 										
-							// 			// Extract latitude and longitude from coordinates
-							// 			const [lng, lat] = geometry.coordinates;
+										// Extract latitude and longitude from coordinates
+										const [lng, lat] = geometry.coordinates;
 								
-							// 			// Check if properties are empty
-							// 			if (Object.keys(properties).length === 0) {
-							// 				customerLat = lat;
-							// 				customerLng = lng;
-							// 			} else if (properties.point_type === 'circle' && properties.radius) {
-							// 				// Handle case for circle type with radius
-							// 				L.circle([lat, lng], {
-							// 					radius: properties.radius,
-							// 					color: 'blue',
-							// 					fillColor: '#30a0ff',
-							// 					fillOpacity: 0.3
-							// 				}).addTo(map).bindPopup(`<b>Circle with radius: ${properties.radius} meters</b>`);
-							// 			}
-							// 		});
-							// 	} else {
-							// 		console.error('Geolocation data is not in the correct format or missing');
-							// 	}
+										// Check if properties are empty
+										if (Object.keys(properties).length === 0) {
+											customerLat = lat;
+											customerLng = lng;
+										} else if (properties.point_type === 'circle' && properties.radius) {
+											// Handle case for circle type with radius
+											L.circle([lat, lng], {
+												radius: properties.radius,
+												color: 'blue',
+												fillColor: '#30a0ff',
+												fillOpacity: 0.3
+											}).addTo(map).bindPopup(`<b>Circle with radius: ${properties.radius} meters</b>`);
+										}
+									});
+								} else {
+									console.error('Geolocation data is not in the correct format or missing');
+								}
 
-							// 	if(visit.type == 'Unscheduled'){
-							// 		finalIcon = redIcon;
-							// 	} else if(visit.type == 'Fresh Installation'){
-							// 		finalIcon = whiteIcon;
-							// 	}else if(visit.type == 'Scheduled'){
-							// 		finalIcon = greenIcon;
-							// 	}else if(visit.type == 'Rescheduled'){
-							// 		finalIcon = blackIcon;
-							// 	}else if(visit.type == 'Site Survey'){
-							// 		finalIcon = blueIcon;
-							// 	}
-							// 	if(visit.status == 'Approval Pending'){
-							// 		finalIcon = yellowIcon;
-							// 	}
+								if(visit.type == 'Unscheduled'){
+									finalIcon = redIcon;
+								} else if(visit.type == 'Fresh Installation'){
+									finalIcon = whiteIcon;
+								}else if(visit.type == 'Scheduled'){
+									finalIcon = greenIcon;
+								}else if(visit.type == 'Rescheduled'){
+									finalIcon = blackIcon;
+								}else if(visit.type == 'Site Survey'){
+									finalIcon = blueIcon;
+								}
+								if(visit.status == 'Approval Pending'){
+									finalIcon = yellowIcon;
+								}
 								
 								
-							// 	if (customerLat !== null && customerLng !== null) {
-							// 		liveMap.setView([customerLat, customerLng], 7);
-							// 		L.marker([customerLat, customerLng], { icon: finalIcon })
-							// 			.addTo(liveMap)
-							// 			.bindPopup(`<b>Maintenance Visit</b><br>${visit.visit_id} - ${visit.type} - ${visit.status}<br><b>${visit.customer}</b><br>${visit.address}`);
-							// 	}
-							// });
+								if (customerLat !== null && customerLng !== null) {
+									liveMap.setView([customerLat, customerLng], 13);
+									L.marker([customerLat, customerLng], { icon: finalIcon })
+										.addTo(liveMap)
+										.bindPopup(`<b>Maintenance Visit</b><br>${visit.visit_id} - ${visit.type} - ${visit.status}<br><b>${visit.customer}</b><br>${visit.address}`);
+								}
+							});
 						} else {
 							console.log("No data returned from the server.");
 						}
@@ -350,7 +350,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 			$(document).on('dragleave', '.drop-zone', function () {
 				const dropZone = $(this);
 				dropZone.removeClass('drop-hover');
-				dropZone.css('background-color', 'cyan');
+				dropZone.css('background-color', '#78D6FF');
 			});
 		
 			$(document).on('drop', '.drop-zone', function (event) {
@@ -362,7 +362,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 				const tech = dropZone.data('tech');
 				const card = $(`#${cardId}`);
 				dropZone.removeClass('drop-hover');
-				dropZone.css('background-color', 'cyan');
+				dropZone.css('background-color', '#78D6FF');
 		
 				if (card.data('type') === 'type1') {
 					openModal(cardId, slotTime, tech, not_available);

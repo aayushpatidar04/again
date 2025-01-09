@@ -40,13 +40,16 @@ def get_context(context=None):
     if role_profile == "Service Coordinator Profile":
         # Fetch the user's territory from User Permissions
         
-        territory = frappe.db.get_value(
-            "User Permission", {"user": user, "allow": "Territory"}, "for_value"
+        territories = frappe.db.get_all(
+            "User Permission",
+            filters={"user": user, "allow": "Territory"},
+            fields=["for_value"]
         )
+        territory_list = [t["for_value"] for t in territories]
         # Fetch issues based on the user's territory
         issues = frappe.get_all(
             "Maintenance Visit",
-            filters={"territory": territory, "_assign": ""},
+            filters={"territory": ["in", territory_list], "_assign": ""},
             fields=[
                 "name",
                 "subject",
@@ -72,7 +75,7 @@ def get_context(context=None):
             tech_territory = frappe.db.get_value(
                 "User Permission", {"user": tech["email"], "allow": "Territory"}, "for_value"
             )
-            if tech_territory == territory:
+            if tech_territory in territory_list:
                 technician_list.append(tech)
         technicians = technician_list
     for issue in issues:
@@ -290,9 +293,6 @@ def get_context(context=None):
                                         <label for="etime">End Time:</label>
                                         <input class="form-control etime" type="time" name="etime" value="{etime}" required readonly>
                                         <small><span class="text-danger etime-error"></span></small><br><br>
-
-                                        <button type="button" class="update btn btn-success"
-                                            data-issue="{issue_code}">Update</button>
                                     </form>
                                 </div>
                             </div>
@@ -301,10 +301,10 @@ def get_context(context=None):
                     count += task_in_slot["duration_in_hours"] - 1
                 else:
                     if count == 0:
-                        html_content += f'<div style="width: 100px; border-right: 1px solid #000; background-color: cyan;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                        html_content += f'<div style="width: 100px; border-right: 1px solid #000; background-color: #78D6FF;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
                     elif count % 1 == 0.5:
                         slot['time'] += timedelta(minutes=30)
-                        html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: cyan;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                        html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: #78D6FF;" data-time="{slot["time"]}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
                         count -= 0.5
                     else:
                         count -= 1
@@ -406,101 +406,100 @@ def get_cords():
 
 
 
-@frappe.whitelist()
-def update_form_data(form_data):
-    # # Parse the form_data from the request
-    # pass
-    try:
-        form_data = json.loads(form_data)
-        technicians = form_data["technicians"]
-        code = form_data["code"]
-        date = form_data["date"]
-        etime = form_data["etime"]
-        stime = form_data["stime"]
-        if(len(etime) > 5):
-            hours, minutes, seconds = map(int, etime.split(":"))
-        else:
-            hours, minutes = map(int, etime.split(":"))
-        etime = timedelta(hours=hours, minutes=minutes)
-        if(len(stime) > 5):
-            hours, minutes, seconds = map(int, stime.split(":"))
-        else:
-            hours, minutes = map(int, stime.split(":"))
+# @frappe.whitelist()
+# def update_form_data(form_data):
+#     # # Parse the form_data from the request
+#     # pass
+#     try:
+#         form_data = json.loads(form_data)
+#         technicians = form_data["technicians"]
+#         code = form_data["code"]
+#         date = form_data["date"]
+#         etime = form_data["etime"]
+#         stime = form_data["stime"]
+#         if(len(etime) > 5):
+#             hours, minutes, seconds = map(int, etime.split(":"))
+#         else:
+#             hours, minutes = map(int, etime.split(":"))
+#         etime = timedelta(hours=hours, minutes=minutes)
+#         if(len(stime) > 5):
+#             hours, minutes, seconds = map(int, stime.split(":"))
+#         else:
+#             hours, minutes = map(int, stime.split(":"))
 
-        stime = timedelta(hours=hours, minutes=minutes)
-
-
-        tasks = frappe.get_all("Assigned Tasks", filters={"issue_code": code}, fields=["name"])
-
-        if tasks:
-            for task in tasks:
-                frappe.delete_doc("Assigned Tasks", task.name, force=True)
-            frappe.db.commit()
+#         stime = timedelta(hours=hours, minutes=minutes)
 
 
+#         tasks = frappe.get_all("Assigned Tasks", filters={"issue_code": code}, fields=["name"])
 
-        for tech in technicians:
-            assigned_tasks = frappe.get_all(
-                "Assigned Tasks",
-                filters={"technician": tech, "date": date},
-                fields=["issue_code", "stime", "etime"],
-            )
-            for task in assigned_tasks:
-                if (
-                    (stime > task.stime and stime < task.etime)
-                    or (etime > task.stime and etime < task.etime)
-                    or (task.stime > stime and task.stime < etime)
-                ):
-                    return {
-                        "error": "error",
-                        "message": f"Time Slot Clash for technician: {tech}",
-                    }
+#         if tasks:
+#             for task in tasks:
+#                 frappe.delete_doc("Assigned Tasks", task.name, force=True)
+#             frappe.db.commit()
 
-        for tech in technicians:
 
-            new_doc = frappe.get_doc(
-                {
-                    "doctype": "Assigned Tasks",
-                    "issue_code": code,
-                    "technician": tech,
-                    "date": date,
-                    "etime": etime,
-                    "stime": stime,
-                }
-            )
-            new_doc.insert()
 
-        # Optionally, you can update the Issue doctype as well
-        issue_doc = frappe.get_doc("Maintenance Visit", code)
-        if issue_doc:
-            existing_techs = []
-            for tech in technicians:
-                if tech not in existing_techs:
-                    existing_techs.append(tech)
-            if existing_techs:
-                issue_doc._assign = json.dumps(existing_techs)
-                frappe.db.sql(
-                    """
-                    UPDATE `tabMaintenance Visit` SET `_assign` = %s WHERE name = %s
-                    """,
-                    (json.dumps(existing_techs), code),
-                )
-            else:
-                issue_doc._assign = ""
-                issue_doc.visit_count = int(issue_doc.visit_count or 1) - 1
-                frappe.db.sql(
-                """
-                    UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
-                """,
-                    ("", 'Unscheduled', issue_doc.visit_count, code),
-                )
+#         for tech in technicians:
+#             assigned_tasks = frappe.get_all(
+#                 "Assigned Tasks",
+#                 filters={"technician": tech, "date": date},
+#                 fields=["issue_code", "stime", "etime"],
+#             )
+#             for task in assigned_tasks:
+#                 if (
+#                     (stime > task.stime and stime < task.etime)
+#                     or (etime > task.stime and etime < task.etime)
+#                     or (task.stime > stime and task.stime < etime)
+#                 ):
+#                     return {
+#                         "error": "error",
+#                         "message": f"Time Slot Clash for technician: {tech}",
+#                     }
 
-            frappe.db.commit()
-        return {"success": "success"}
-    except Exception as e:
-        return {"error": "error", "message": str(e)}
+#         for tech in technicians:
+
+#             new_doc = frappe.get_doc(
+#                 {
+#                     "doctype": "Assigned Tasks",
+#                     "issue_code": code,
+#                     "technician": tech,
+#                     "date": date,
+#                     "etime": etime,
+#                     "stime": stime,
+#                 }
+#             )
+#             new_doc.insert()
+
+#         # Optionally, you can update the Issue doctype as well
+#         issue_doc = frappe.get_doc("Maintenance Visit", code)
+#         if issue_doc:
+#             existing_techs = []
+#             for tech in technicians:
+#                 if tech not in existing_techs:
+#                     existing_techs.append(tech)
+#             if existing_techs:
+#                 issue_doc._assign = json.dumps(existing_techs)
+#                 frappe.db.sql(
+#                     """
+#                     UPDATE `tabMaintenance Visit` SET `_assign` = %s WHERE name = %s
+#                     """,
+#                     (json.dumps(existing_techs), code),
+#                 )
+#             else:
+#                 issue_doc._assign = ""
+#                 issue_doc.visit_count = int(issue_doc.visit_count or 1) - 1
+#                 frappe.db.sql(
+#                 """
+#                     UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
+#                 """,
+#                     ("", 'Unscheduled', issue_doc.visit_count, code),
+#                 )
+
+#             frappe.db.commit()
+#         return {"success": "success"}
+#     except Exception as e:
+#         return {"error": "error", "message": str(e)}
     
-
 @frappe.whitelist()
 def get_live_locations():
 
@@ -531,8 +530,8 @@ def get_live_locations():
 
     for visit in maintenance_records:
         visit_doc = frappe.get_doc("Maintenance Visit", visit.name)
-
         #geolocation
+        
         delivery_note_name = frappe.get_value(
             "Serial No",
             {"custom_item_current_installation_address": visit_doc.delivery_addres},
@@ -540,12 +539,19 @@ def get_live_locations():
         )
         if not delivery_note_name:
             frappe.throw(f"No Serial No found for address: {visit_doc.delivery_addres}")
-        geolocation = frappe.get_all('Address', filters = {'name' : delivery_note_name}, fields = ['geolocation'])
+        address = frappe.get_doc("Address", delivery_note_name)
+        geolocation = address.geolocation
         if geolocation:
-            geolocation = json.loads(geolocation[0].geolocation)
-        else:
-            frappe.log_error(f"Invalid geolocation JSON for address: {delivery_note_name}", "Field Service Management")
-            geolocation = None
+            # Check if geolocation is a string that needs to be loaded as JSON
+            if isinstance(geolocation, str):
+                try:
+                    geolocation = json.loads(geolocation)
+                except json.JSONDecodeError:
+                    frappe.log_error(f"Invalid geolocation data for address: {address.name}", "Field Service Management")
+                    geolocation = None
+            elif not isinstance(geolocation, dict):
+                frappe.log_error(f"Unexpected geolocation format for address: {address.name}", "Field Service Management")
+                geolocation = None
 
         maintenance_visits.append({
             "visit_id": visit.name,
@@ -554,10 +560,8 @@ def get_live_locations():
             "customer": visit.customer,
             "type": visit.maintenance_type,
             "status": visit.completion_status
-        }) 
+        })    
     return {
         "technicians": technicians,
         "maintenance": maintenance_visits
     }
-
-

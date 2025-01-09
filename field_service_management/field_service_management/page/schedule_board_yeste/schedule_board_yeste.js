@@ -72,7 +72,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 				geoDiv.data('mapInstance', map);
 
 				frappe.call({
-					method: "field_service_management.field_service_management.page.schedule_board.schedule_board.get_cords",
+					method: "field_service_management.field_service_management.page.schedule_board_yeste.schedule_board_yeste.get_cords",
 					callback: function (r) {
 						if (r.message) {
 							const technicians = r.message;
@@ -101,7 +101,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 
 							// Center the map on the customer's location
 							if (customerLat !== null && customerLng !== null) {
-								map.setView([customerLat, customerLng], 7);
+								map.setView([customerLat, customerLng], 13);
 								L.marker([customerLat, customerLng]).addTo(map)
 									.bindPopup('<b>Customer</b><br><b>Latitude:</b> ' + customerLat + ' <b>Longitude:</b> ' + customerLng).openPopup();
 							}
@@ -114,7 +114,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 
 							// Add technician markers
 							const greenIcon = L.icon({
-								iconUrl: '/files/green-marker51773a.png',
+								iconUrl: '/files/technician.png',
 								iconSize: [25, 41],
 								iconAnchor: [12, 41],
 								popupAnchor: [1, -34]
@@ -145,7 +145,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 			}
 
 			// Initialize the map
-			liveMap = L.map(mapContainerId).setView([10.790603876302452, 106.71873522574441], 5); // Initial view centered on India
+			liveMap = L.map(mapContainerId).setView([10.790603876302452, 106.71873522574441], 13); // Initial view centered on India
 			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				maxZoom: 19,
 				attribution: '&copy; OpenStreetMap contributors'
@@ -153,7 +153,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 
 			// Define custom icons for technicians and maintenance visits
 			const technicianIcon = L.icon({
-				iconUrl: '/files/green-marker51773a.png',
+				iconUrl: '/files/technician.png',
 				iconSize: [25, 41],
 				iconAnchor: [12, 41],
 				popupAnchor: [1, -34]
@@ -198,7 +198,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 			// Function to fetch and display locations
 			function fetchAndDisplayLocations() {
 				frappe.call({
-					method: "field_service_management.field_service_management.page.schedule_board.schedule_board.get_live_locations",
+					method: "field_service_management.field_service_management.page.schedule_board_yeste.schedule_board_yeste.get_live_locations",
 					callback: function (r) {
 						if (r.message) {
 							const { technicians, maintenance } = r.message;
@@ -262,7 +262,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 								}
 
 								if (customerLat !== null && customerLng !== null) {
-									liveMap.setView([customerLat, customerLng], 7);
+									liveMap.setView([customerLat, customerLng], 13);
 									L.marker([customerLat, customerLng], { icon: finalIcon })
 										.addTo(liveMap)
 										.bindPopup(`<b>Maintenance Visit</b><br>${visit.visit_id} - ${visit.type} - ${visit.status}<br><b>${visit.customer}</b><br>${visit.address}`);

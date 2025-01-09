@@ -40,13 +40,16 @@ def get_context(context=None):
     if role_profile == "Service Coordinator Profile":
         # Fetch the user's territory from User Permissions
         
-        territory = frappe.db.get_value(
-            "User Permission", {"user": user, "allow": "Territory"}, "for_value"
+        territories = frappe.db.get_all(
+            "User Permission",
+            filters={"user": user, "allow": "Territory"},
+            fields=["for_value"]
         )
+        territory_list = [t["for_value"] for t in territories]
         # Fetch issues based on the user's territory
         issues = frappe.get_all(
             "Maintenance Visit",
-            filters={"territory": territory, "_assign": ""},
+            filters={"territory": c, "_assign": ""},
             fields=[
                 "name",
                 "subject",
@@ -72,7 +75,7 @@ def get_context(context=None):
             tech_territory = frappe.db.get_value(
                 "User Permission", {"user": tech["email"], "allow": "Territory"}, "for_value"
             )
-            if tech_territory == territory:
+            if tech_territory in territory_list:
                 technician_list.append(tech)
         technicians = technician_list
     for issue in issues:
@@ -372,12 +375,12 @@ def save_form_data(form_data):
                 if tech not in existing_techs:
                     existing_techs.append(tech)
             issue_doc._assign = json.dumps(existing_techs)
-            issue_doc.visit_count += 1
+            issue_doc.visit_count = int(issue_doc.visit_count or 0) + 1
             frappe.db.sql(
                 """
-                UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = `visit_count` + 1 WHERE name = %s
+                UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
             """,
-                (json.dumps(existing_techs), 'Scheduled', code),
+                (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, code),
             )
 
             frappe.db.commit()
