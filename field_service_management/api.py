@@ -334,6 +334,20 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
                 "type": "First Visit",
                 "is_completed": 'no'
             })
+
+            visit_start_record = frappe.get_all("Visit Start Maintenance", filters={
+                "parent": maintenance_visit,
+                "technician": technician_user
+            }, fields=["visit_start_at"], limit=1, order_by="visit_start_at desc")
+
+            if not visit_start_record:
+                return {"status": "failed", "message": "Visit start time not found for the technician."}
+
+            visit_start_time = visit_start_record[0].get("visit_start_at")
+
+            travel_time = get_time_difference(visit_start_time, new_record.punch_in)  # Get the time difference
+            new_record.travel_time = travel_time
+
             new_record.insert(ignore_permissions=True)
             frappe.db.commit()
             return {"status": "success", "message": "Punch-in recorded for First Visit"}
@@ -351,6 +365,21 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
                 "type": "Rescheduled Visit",
                 "is_completed": False
             })
+
+            visit_start_record = frappe.get_all("Visit Start Maintenance", filters={
+                "parent": maintenance_visit,
+                "technician": technician_user
+            }, fields=["visit_start_at"], limit=1, order_by="visit_start_at desc")
+            
+            if not visit_start_record:
+                return {"status": "failed", "message": "Visit start time not found for the technician."}
+
+            visit_start_time = visit_start_record[0].get("visit_start_at")
+            
+            # Calculate the travel_time (difference between visit_start_time and punch_in)
+            travel_time = get_time_difference(visit_start_time, new_record.punch_in)  # Get the time difference
+            new_record.travel_time = travel_time
+
             new_record.insert(ignore_permissions=True)
             frappe.db.commit()
             return {"status": "success", "message": "Punch-in recorded for Rescheduled Visit"}
@@ -379,6 +408,18 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
 
     return {"status": "failed", "message": "Invalid operation"}
 
+
+def get_time_difference(start_time, end_time):
+    """
+    Calculate the time difference between two datetime values.
+    Returns the difference in seconds.
+    """
+    if not start_time or not end_time:
+        return 0
+    
+    time_diff = end_time - start_time
+    return time_diff.total_seconds()
+    
 @frappe.whitelist(allow_guest=True)
 def get_maintenance_(name = None):
 

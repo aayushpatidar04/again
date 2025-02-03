@@ -220,3 +220,18 @@ def update_maintenance_visit(maintenance_visit, name):
     reschedule_doc.save(ignore_permissions=True)
 
     return {"success": True}
+
+@frappe.whitelist(allow_guest=True)
+def get_customer_addresses(customer):
+    return frappe.db.sql(
+        """
+        SELECT 
+            addr.name, addr.address_line1, addr.address_line2, addr.ward_name, addr.district,
+            addr.town, addr.province, addr.country, addr.phone
+        FROM `tabAddress` addr
+        JOIN `tabDynamic Link` link ON link.parent = addr.name
+        WHERE link.link_doctype = 'Customer' AND link.link_name = %s
+        """,
+        (customer),
+        as_dict=True
+    )

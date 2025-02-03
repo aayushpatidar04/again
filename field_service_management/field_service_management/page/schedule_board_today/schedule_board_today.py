@@ -49,7 +49,7 @@ def get_context(context=None):
         # Fetch issues based on the user's territory
         issues = frappe.get_all(
             "Maintenance Visit",
-            filters={"territory": c, "_assign": ""},
+            filters={"territory": ["in", territory_list], "_assign": ""},
             fields=[
                 "name",
                 "subject",
@@ -89,9 +89,12 @@ def get_context(context=None):
 
         #geolocation --------------------------------------------------
         geolocation = frappe.get_all('Address', filters = {'name' : issue.customer_address}, fields = ['geolocation'])
-        geolocation = json.loads(geolocation[0].geolocation)
-        issue.geolocation = json.dumps(geolocation['features']).replace('"', "'")
-        # issue.geolocation = geolocation
+        if(geolocation[0].geolocation):
+            geolocation = json.loads(geolocation[0].geolocation)
+            issue.geolocation = json.dumps(geolocation['features']).replace('"', "'")
+        else:
+            geolocation = None
+            issue.geolocation = geolocation
         # checklist tree ----------------------------------------------
         checklist = frappe.get_all(
             "Maintenance Visit Checklist",
