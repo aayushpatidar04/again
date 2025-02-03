@@ -323,17 +323,6 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
     if punch_in:
         if visit_type == "First Visit" and not existing_records:
             # Create a new record for the first visit if none exists
-            new_record = frappe.get_doc({
-                "doctype": "Punch In Punch Out",
-                "parent": maintenance_visit,
-                "parenttype": "Maintenance Visit",
-                "parentfield": "punch_in_punch_out",
-                "maintenance_visit": maintenance_visit,
-                "technician": technician_user,
-                "punch_in": now_datetime(),
-                "type": "First Visit",
-                "is_completed": 'no'
-            })
 
             visit_start_record = frappe.get_all("Visit Start Maintenance", filters={
                 "parent": maintenance_visit,
@@ -345,8 +334,19 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
 
             visit_start_time = visit_start_record[0].get("visit_start_at")
 
-            travel_time = get_time_difference(visit_start_time, new_record.punch_in)  # Get the time difference
-            new_record.travel_time = travel_time
+            travel_time = get_time_difference(visit_start_time, new_record.punch_in)
+            new_record = frappe.get_doc({
+                "doctype": "Punch In Punch Out",
+                "parent": maintenance_visit,
+                "parenttype": "Maintenance Visit",
+                "parentfield": "punch_in_punch_out",
+                "maintenance_visit": maintenance_visit,
+                "technician": technician_user,
+                "punch_in": now_datetime(),
+                "travel_time": travel_time,
+                "type": "First Visit",
+                "is_completed": 'no'
+            })
 
             new_record.insert(ignore_permissions=True)
             frappe.db.commit()

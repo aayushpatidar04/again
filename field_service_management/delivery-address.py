@@ -173,7 +173,7 @@ def get_item_code_from_child_table(cdn):
         item_code = frappe.db.get_value('Maintenance Visit Purpose', cdn, 'item_code')
         return item_code
     else:
-        frappe.throw(_("You do not have permission to access this resource."))
+        frappe.throw(("You do not have permission to access this resource."))
 
 
 @frappe.whitelist(allow_guest=True)
