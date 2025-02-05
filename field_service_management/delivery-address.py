@@ -111,7 +111,7 @@ def get_item_table(name):
     # return childs
     childs = frappe.db.sql(
         """
-        SELECT heading, content
+        SELECT heading, content, periodicity
         FROM `tabItem Maintenance Table`
         WHERE parent = %s
         """,
@@ -235,3 +235,24 @@ def get_customer_addresses(customer):
         (customer),
         as_dict=True
     )
+
+@frappe.whitelist(allow_guest=True)
+def get_punch_data(employee_email, start_date, end_date):
+    query = """
+        SELECT 
+            SUM(travel_time) AS total_travel_time, 
+            SUM(working_hours) AS total_working_hours
+        FROM `tabPunch In Punch Out`
+        WHERE technician = %s
+        AND punch_in BETWEEN %s AND %s
+    """
+    result = frappe.db.sql(query, (employee_email, start_date, end_date), as_dict=True)
+
+    if result and result[0]:
+        return {
+            "total_travel_time": result[0].get("total_travel_time", 0) or 0,
+            "total_working_hours": result[0].get("total_working_hours", 0) or 0
+        }
+    
+    return {"total_travel_time": 0, "total_working_hours": 0}
+

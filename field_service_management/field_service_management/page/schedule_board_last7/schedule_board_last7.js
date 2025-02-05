@@ -313,7 +313,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function(wrapper) {
 				
 				$('#' + contentId ).addClass('show active');
 			});
-		}, 1000);
+		}, 3000);
 
 	});
 }

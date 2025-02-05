@@ -317,7 +317,6 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 		});
 
 		setTimeout(function () {
-
 			var scrollableSections = $(".scrollable-x");
 			$(".scrollable-x").on("scroll", function () {
 				var scrollLeft = $(this).scrollLeft();
@@ -326,6 +325,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 						$(this).scrollLeft(scrollLeft);
 					}
 				});
+				console.log('yes');
 			});
 			
 			$(document).on('dragstart', '.drag', function (event) {
@@ -484,7 +484,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 				
 				$('#' + contentId ).addClass('show active');
 			});
-		}, 1000);
+		}, 3000);
 
 		//update modal
 		$(document).on("click", ".update", function () {

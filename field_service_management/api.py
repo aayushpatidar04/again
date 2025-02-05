@@ -334,7 +334,7 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
 
             visit_start_time = visit_start_record[0].get("visit_start_at")
 
-            travel_time = get_time_difference(visit_start_time, new_record.punch_in)
+            travel_time = get_time_difference(visit_start_time, now_datetime())
             new_record = frappe.get_doc({
                 "doctype": "Punch In Punch Out",
                 "parent": maintenance_visit,
@@ -391,6 +391,7 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
             record_name = existing_records[0]['name']
             existing_record = frappe.get_doc("Punch In Punch Out", record_name)
             existing_record.punch_out = now_datetime()
+            existing_record.working_hours = get_time_difference(existing_record.punch_in, now_datetime())
             existing_record.completed = 'yes'
             existing_record.save(ignore_permissions=True)
             frappe.db.commit()
@@ -418,7 +419,12 @@ def get_time_difference(start_time, end_time):
         return 0
     
     time_diff = end_time - start_time
-    return time_diff.total_seconds()
+    total_seconds = time_diff.total_seconds()
+    
+    hours = int(total_seconds // 3600)
+    minutes = int((total_seconds % 3600) // 60)
+    
+    return f"{hours}h {minutes}m"
     
 @frappe.whitelist(allow_guest=True)
 def get_maintenance_(name = None):
