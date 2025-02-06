@@ -1,5 +1,6 @@
 
 import frappe
+import re
 
 
 @frappe.whitelist(allow_guest=True)
@@ -239,20 +240,46 @@ def get_customer_addresses(customer):
 @frappe.whitelist(allow_guest=True)
 def get_punch_data(employee_email, start_date, end_date):
     query = """
-        SELECT 
-            SUM(travel_time) AS total_travel_time, 
-            SUM(working_hours) AS total_working_hours
+        SELECT travel_time, working_hours
         FROM `tabPunch In Punch Out`
         WHERE technician = %s
         AND punch_in BETWEEN %s AND %s
     """
-    result = frappe.db.sql(query, (employee_email, start_date, end_date), as_dict=True)
+    records = frappe.db.sql(query, (employee_email, start_date, end_date), as_dict=True)
 
-    if result and result[0]:
-        return {
-            "total_travel_time": result[0].get("total_travel_time", 0) or 0,
-            "total_working_hours": result[0].get("total_working_hours", 0) or 0
-        }
-    
-    return {"total_travel_time": 0, "total_working_hours": 0}
+    total_travel_minutes = 0
+    total_working_minutes = 0
+
+    for record in records:
+        # Convert travel time to total minutes
+        total_travel_minutes += time_to_minutes(record.get("travel_time", "0h 0m"))
+
+        # Convert working hours to total minutes
+        total_working_minutes += time_to_minutes(record.get("working_hours", "0h 0m"))
+
+    # Convert back to "Xh Ym" format
+    total_travel_time = minutes_to_time(total_travel_minutes)
+    total_working_hours = minutes_to_time(total_working_minutes)
+
+    return {
+        "total_travel_time": total_travel_time,
+        "total_working_hours": total_working_hours
+    }
+
+
+def time_to_minutes(time_str):
+    """ Convert 'Xh Ym' format to total minutes """
+    match = re.match(r"(?:(\d+)h)?\s*(?:(\d+)m)?", time_str)
+    if not match:
+        return 0
+    hours = int(match.group(1) or 0)
+    minutes = int(match.group(2) or 0)
+    return hours * 60 + minutes
+
+
+def minutes_to_time(total_minutes):
+    """ Convert total minutes back to 'Xh Ym' format """
+    hours = total_minutes // 60
+    minutes = total_minutes % 60
+    return f"{hours}h {minutes}m" if hours else f"{minutes}m"
 
