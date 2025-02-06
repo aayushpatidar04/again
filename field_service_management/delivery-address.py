@@ -243,9 +243,11 @@ def get_punch_data(employee_email, start_date, end_date):
         SELECT travel_time, working_hours
         FROM `tabPunch In Punch Out`
         WHERE technician = %s
-        AND punch_in BETWEEN %s AND %s
+        AND punch_in >= %s
+        AND punch_in <= %s
     """
     records = frappe.db.sql(query, (employee_email, start_date, end_date), as_dict=True)
+
 
     total_travel_minutes = 0
     total_working_minutes = 0
@@ -284,4 +286,36 @@ def minutes_to_time(total_minutes):
     hours = total_minutes // 60
     minutes = total_minutes % 60
     return f"{hours}h {minutes}m" if hours else f"{minutes}m"
+
+@frappe.whitelist(allow_guest=True)
+def get_invoice_hours(employee, start_date, end_date):
+    total_hours = 0
+    delivery_notes = frappe.db.sql("""
+        SELECT name, total_qty, posting_date
+        FROM tabDelivery Note
+        WHERE posting_date >= %s AND  posting_date <= %s
+    """, (start_date, end_date), as_dict=True)
+    
+    valid_delivery_notes = []
+
+    for dn in delivery_notes:
+        # Get employee contributions for the current delivery note
+        employee_contributions = frappe.db.sql("""
+            SELECT employee 
+            FROM tabEmployee Contribution
+            WHERE parent = %s
+        """, (dn.name,), as_dict=True)
+
+
+        employee_list = [e["employee"] for e in employee_contributions]
+
+        if employee in employee_list:
+            total_hours += dn.total_qty/len(employee_list)
+            valid_delivery_notes.append({
+                "delivery_note": dn.name,
+                "total_employees": len(employee_list)
+            })
+    return {
+        "total_invoice_hours": total_hours
+    }
 
