@@ -271,8 +271,8 @@ def get_punch_data(employee_email, start_date, end_date):
 
 def time_to_minutes(time_str):
     """ Convert 'Xh Ym' format to total minutes """
-    if time_str == None:
-        time_str = "0h 0m"
+    if not time_str:
+        return 0
     match = re.match(r"(?:(\d+)h)?\s*(?:(\d+)m)?", time_str)
     if not match:
         return 0
