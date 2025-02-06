@@ -292,7 +292,7 @@ def get_invoice_hours(employee, start_date, end_date):
     total_hours = 0
     delivery_notes = frappe.db.sql("""
         SELECT name, total_qty, posting_date
-        FROM tabDelivery Note
+        FROM `tabDelivery Note`
         WHERE posting_date >= %s AND  posting_date <= %s
     """, (start_date, end_date), as_dict=True)
     
@@ -302,7 +302,7 @@ def get_invoice_hours(employee, start_date, end_date):
         # Get employee contributions for the current delivery note
         employee_contributions = frappe.db.sql("""
             SELECT employee 
-            FROM tabEmployee Contribution
+            FROM `tabEmployee Contribution`
             WHERE parent = %s
         """, (dn.name,), as_dict=True)
 
