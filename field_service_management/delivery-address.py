@@ -319,3 +319,26 @@ def get_invoice_hours(employee, start_date, end_date):
         "total_invoice_hours": total_hours
     }
 
+@frappe.whitelist(allow_guest=True)
+def get_customer_address(doctype, txt, searchfield, start, page_len, filters):
+    customer = filters.get('customer') if filters else None
+    if not customer:
+        return []
+
+    addresses = frappe.db.sql(
+            """
+            SELECT 
+                addr.name, addr.address_line1, addr.address_line2, addr.ward_name, addr.district,
+                addr.town, addr.province, addr.country, addr.phone
+            FROM `tabAddress` addr
+            JOIN `tabDynamic Link` link ON link.parent = addr.name
+            WHERE link.link_doctype = 'Customer' AND link.link_name = %s
+            """,
+            (customer),
+            as_dict=True
+        )
+
+    return [
+        (addr["name"], f"{addr['name']} | {addr['address_line1']}, {addr.get('address_line2', '')}, {addr.get('ward_name', '')}, {addr.get('district', '')}, {addr.get('town', '')}, {addr.get('province', '')}, {addr.get('country', '')}, Ph: {addr.get('phone', '')}".strip(" ,"))
+        for addr in addresses
+    ]
