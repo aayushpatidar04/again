@@ -75,7 +75,8 @@ def get_maintenance():
     maintenance_visits = frappe.get_all(
         "Maintenance Visit",
         filters={
-            "_assign": ["like", f'%"{user}"%']
+            "_assign": ["like", f'%"{user}"%'],
+            "status": ["!=", "Cancelled"]
         },
         fields="name"
     )

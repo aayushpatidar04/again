@@ -230,6 +230,10 @@ def get_context(context=None):
                 count = 0
                 afternoon = 0
             for slot in time_slots:
+                if count == -0.5:
+                    ttt = slot['time'] - timedelta(minutes=30)
+                    html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                    count += 0.5
                 if slot['label'] == '03' and afternoon == 1:
                     count += 6
                     html_content += f'<div style="width: 150px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">Leave</div>'
@@ -238,6 +242,7 @@ def get_context(context=None):
                         count -=1
                     elif(count == 0.5):
                         html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; color: white; background-color: red;" data-time="{slot["time"]}" data-tech="{tech.email}" class="px-1">Lunch Time</div>'
+                        count -= 0.5
                     else:
                         html_content += f'<div style="width: 25px; border-right: 1px solid #000; color: white; background-color: red;" data-time="{slot["time"]}" data-tech="{tech.email}" class="px-1">Lunch Time</div>'
                 else:
