@@ -82,7 +82,7 @@ def get_items_for_address(doctype, txt, searchfield, start, page_len, filters):
 
     # Return the items in the expected format (value and description)
     return [
-        (item["item_code"], f"<b>{item['item_name']}</b> | {item.get('name', 'None')}")  # Passing the whole item object
+        (item["item_code"], f"{item['item_name']} | {item["item_code"]}", item["name"])  # Passing the whole item object
         for item in items
     ]
 
@@ -170,11 +170,12 @@ def get_item(name):
 
 @frappe.whitelist(allow_guest=True)
 def get_item_code_from_child_table(cdn):
-    if frappe.has_permission('Maintenance Visit Purpose', 'read'):
-        item_code = frappe.db.get_value('Maintenance Visit Purpose', cdn, 'item_code')
-        return item_code
-    else:
-        frappe.throw(("You do not have permission to access this resource."))
+    child_doc = frappe.get_doc("Maintenance Visit Purpose", cdn)
+    return child_doc.item_code
+    # if frappe.has_permission('Maintenance Visit Purpose', 'read'):
+    #     item_code = frappe.db.get_value('Maintenance Visit Purpose', cdn, 'item_code')
+    # else:
+    #     frappe.throw(("You do not have permission to access this resource."))
 
 
 @frappe.whitelist(allow_guest=True)

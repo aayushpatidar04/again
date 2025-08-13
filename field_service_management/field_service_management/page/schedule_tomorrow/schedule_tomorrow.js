@@ -485,7 +485,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
 				
 				$('#' + contentId ).addClass('show active');
 			});
-		}, 1000);
+		}, 3000);
 
 		//update modal
 		$(document).on("click", ".update", function () {

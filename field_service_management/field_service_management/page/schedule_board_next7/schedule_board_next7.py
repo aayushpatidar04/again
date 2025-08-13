@@ -199,34 +199,37 @@ def get_context(context=None):
         total_hours = 0
         for date in dates:
             tss = tasks_by_date[date]
-            query = """
-                SELECT 
-                    description, 
-                    half_day, 
-                    from_date, 
-                    to_date, 
-                    select_half_day
-                FROM 
-                    `tabLeave Application`
-                WHERE 
-                    employee_name = %(employee_name)s
-                    AND status = 'Approved'
-                    AND from_date <= %(date)s
-                    AND to_date >= %(date)s;
-            """
-            leaves = frappe.db.sql(query, {"employee_name": tech.full_name, "date": date}, as_dict=True)
+            employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
+            if employee:
+                query = """
+                    SELECT 
+                        description, 
+                        half_day, 
+                        from_date, 
+                        to_date, 
+                        select_half_day
+                    FROM 
+                        `tabLeave Application`
+                    WHERE 
+                        employee = %(employee)s
+                        AND status = 'Approved'
+                        AND from_date <= %(date)s
+                        AND to_date >= %(date)s;
+                """
+            leaves = frappe.db.sql(query, {"employee": employee, "date": date}, as_dict=True)
             if(leaves):
                 for leave in leaves:
                     if (leave.half_day == 1):
                         if (leave.select_half_day == 'Morning'):
-                            count = 6
-                            html_content += f'<div style="width: 150px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description}</div>'
+                            count = 3
+                            html_content += f'<div style="width: 75px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
                         else:
+                            count = 0
                             afternoon = 1
                     else:
                         count = 12
                         afternoon = 0
-                        html_content += f'<div style="width: 300px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description}</div>'
+                        html_content += f'<div style="width: 300px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
             else:
                 count = 0
                 afternoon = 0
@@ -235,9 +238,9 @@ def get_context(context=None):
                     ttt = slot['time'] - timedelta(minutes=30)
                     html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
                     count += 0.5
-                if slot['label'] == '03' and afternoon == 1:
-                    count += 6
-                    html_content += f'<div style="width: 150px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">Leave</div>'
+                if slot['label'] == '01' and afternoon == 1:
+                    count += 8
+                    html_content += f'<div style="width: 200px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">Leave</div>'
                 if slot['label'] == '12':
                     if(count >= 1):
                         count -=1
@@ -396,12 +399,13 @@ def save_form_data(form_data):
                     existing_techs.append(tech)
             issue_doc._assign = json.dumps(existing_techs)
             issue_doc.visit_count = int(issue_doc.visit_count or 0) + 1
+            issue_doc.mntc_date = date
 
             frappe.db.sql(
                 """
-                UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
+                UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s, `mntc_date` = %s WHERE name = %s
             """,
-                (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, code),
+                (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, date, code),
             )
 
             frappe.db.commit()
@@ -500,11 +504,12 @@ def update_form_data(form_data):
                     existing_techs.append(tech)
             if existing_techs:
                 issue_doc._assign = json.dumps(existing_techs)
+                issue_doc.mntc_date = date
                 frappe.db.sql(
                     """
-                    UPDATE `tabMaintenance Visit` SET `_assign` = %s WHERE name = %s
+                    UPDATE `tabMaintenance Visit` SET `_assign` = %s, `mntc_date` = %s WHERE name = %s
                     """,
-                    (json.dumps(existing_techs), code),
+                    (json.dumps(existing_techs), date, code),
                 )
             else:
                 issue_doc._assign = ""

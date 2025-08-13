@@ -312,7 +312,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 				
 				$('#' + contentId ).addClass('show active');
 			});
-		}, 1000);
+		}, 3000);
 
 	});
 }

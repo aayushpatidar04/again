@@ -32,6 +32,23 @@ def get_context(context=None):
                 "customer"
             ],
         )
+        lead_issues = frappe.get_all(
+            "Maintenance Visit",
+            filters={"_assign": ["!=", ""]},
+            fields=[
+                "name",
+                "subject",
+                "status",
+                "creation",
+                "maintenance_type",
+                "_assign",
+                "description",
+                "maintenance_description",
+                "customer_address",
+                "completion_status",
+                "customer"
+            ],
+        )
         technicians = frappe.get_all(
             "User",
             filters={"role_profile_name": "Service Technician Role Profile"},
@@ -50,6 +67,23 @@ def get_context(context=None):
         issues = frappe.get_all(
             "Maintenance Visit",
             filters={"territory": ["in", territory_list], "_assign": ""},
+            fields=[
+                "name",
+                "subject",
+                "status",
+                "creation",
+                "maintenance_type",
+                "_assign",
+                "description",
+                "maintenance_description",
+                "customer_address",
+                "completion_status",
+                "customer"
+            ],
+        )
+        lead_issues = frappe.get_all(
+            "Maintenance Visit",
+            filters={"territory": ["in", territory_list], "_assign": ["!=", ""]},
             fields=[
                 "name",
                 "subject",
@@ -157,8 +191,88 @@ def get_context(context=None):
                 html_content += "</p>"
         issue.symptoms_res = html_content
 
+    for issue in lead_issues:
+        if issue._assign:
+            try:
+                assign_list = json.loads(issue._assign)
+                issue.assigned = json.loads(issue._assign)
+                issue._assign = " | ".join(assign_list)
+            except json.JSONDecodeError:
+                issue._assign = "No one assigned"
+
+        #geolocation --------------------------------------------------
+        geolocation = frappe.get_all('Address', filters = {'name' : issue.customer_address}, fields = ['geolocation'])
+        if(geolocation[0].geolocation):
+            geolocation = json.loads(geolocation[0].geolocation)
+            issue.geolocation = json.dumps(geolocation['features']).replace('"', "'")
+        else:
+            geolocation = None
+            issue.geolocation = geolocation
+        # checklist tree ----------------------------------------------
+        checklist = frappe.get_all(
+            "Maintenance Visit Checklist",
+            filters = {"parent": issue.name},
+            fields = ['item_code', 'item_name', 'heading', 'work_done', 'done_by']
+        )
+        checklist_tree = {}
+        html_content = ""
+        for problem in checklist:
+            key = problem.item_code
+            if key not in checklist_tree:
+                checklist_tree[key] = []
+            checklist_tree[key].append(problem)
+
+        for item_code, products in checklist_tree.items():
+            if products:
+                html_content += f"<p><strong>{item_code}: {products[0].item_name}</strong></p>"
+                for product in products:
+                    checked_attribute = "checked" if product.work_done == "Yes" else ""
+                    html_content += f"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type='checkbox' {checked_attribute} disabled> &nbsp;&nbsp;&nbsp;&nbsp;{product.heading}<br>"
+                html_content += "</p>"
+        issue.checklist_tree = html_content
+
+
+        # Products -------------------------------------------------------------
+        products = frappe.get_all(
+            "Maintenance Visit Purpose",
+            filters = {"parent": issue.name},
+            fields = ['item_code', 'item_name', 'custom_image']
+        )
+        issue.products = products
+
+        # Spare Items -------------------------------------------------------------
+        spare_items = frappe.get_all(
+            "Spare Part",
+            filters = {"parent": issue.name},
+            fields = ['item_code', 'description', 'periodicity', 'uom']
+        )
+        issue.spare_items = spare_items
+
+        #symptoms and resolutions ------------------------------------------------------
+        symptoms = frappe.get_all(
+            "Maintenance Visit Symptoms",
+            filters = {"parent": issue.name},
+            fields = ['item_code', 'symptom_code', 'resolution', 'image']
+        )
+        symptoms_res = {}
+        html_content = ""
+        for symptom in symptoms:
+            key = symptom.item_code
+            if key not in symptoms_res:
+                symptoms_res[key] = []
+            symptoms_res[key].append(symptom)
+
+        for item_code, resolutions in symptoms_res.items():
+            if resolutions:
+                html_content += f"<p><strong>{item_code}:</strong></p>"
+                for resolution in resolutions:
+                    html_content += f"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='{resolution.image}' style='max-width: 100px;'> --> <strong>{resolution.symptom_code}</strong> --> {resolution.resolution}<br>"
+                html_content += "</p>"
+        issue.symptoms_res = html_content
+
 
     context["issues"] = issues
+    context["lead_issues"] = lead_issues
     
     date = datetime.now().date()
     time_slots = [
@@ -187,34 +301,37 @@ def get_context(context=None):
             task.duration_in_hours = time_diff.total_seconds() / 3600
             task.flag = 0
         tech.tasks = tasks
-        query = """
-            SELECT 
-                description, 
-                half_day, 
-                from_date, 
-                to_date, 
-                select_half_day
-            FROM 
-                `tabLeave Application`
-            WHERE 
-                employee_name = %(employee_name)s
-                AND status = 'Approved'
-                AND from_date <= %(date)s
-                AND to_date >= %(date)s;
-        """
-        leaves = frappe.db.sql(query, {"employee_name": tech.full_name, "date": date}, as_dict=True)
+        employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
+        if employee:
+            query = """
+                SELECT 
+                    description, 
+                    half_day, 
+                    from_date, 
+                    to_date, 
+                    select_half_day
+                FROM 
+                    `tabLeave Application`
+                WHERE 
+                    employee = %(employee)s
+                    AND status = 'Approved'
+                    AND from_date <= %(date)s
+                    AND to_date >= %(date)s;
+            """
+        leaves = frappe.db.sql(query, {"employee": employee, "date": date}, as_dict=True)
         if(leaves):
             for leave in leaves:
                 if (leave.half_day == 1):
                     if (leave.select_half_day == 'Morning'):
-                        count = 6
-                        html_content += f'<div style="width: 600px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description}</div>'
+                        count = 3
+                        html_content += f'<div style="width: 300px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
                     else:
+                        count = 0
                         afternoon = 1
                 else:
                     count = 12
                     afternoon = 0
-                    html_content += f'<div style="width: 1200px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description}</div>'
+                    html_content += f'<div style="width: 1200px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
         else:
             count = 0
             afternoon = 0
@@ -224,9 +341,9 @@ def get_context(context=None):
                 ttt = slot['time'] - timedelta(minutes=30)
                 html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
                 count += 0.5
-            if slot['label'] == '03:00 PM' and afternoon == 1:
-                count += 6
-                html_content += f'<div style="width: 600px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">Leave</div>'
+            if slot['label'] == '01:00 PM' and afternoon == 1:
+                count += 8
+                html_content += f'<div style="width: 800px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">Leave</div>'
 
             if slot['label'] == '12:00 PM':
                 if(count >= 1):
@@ -385,11 +502,12 @@ def save_form_data(form_data):
                     existing_techs.append(tech)
             issue_doc._assign = json.dumps(existing_techs)
             issue_doc.visit_count = int(issue_doc.visit_count or 0) + 1
+            issue_doc.mntc_date = date
             frappe.db.sql(
                 """
-                UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
+                UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s, `mntc_date` = %s WHERE name = %s
             """,
-                (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, code),
+                (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, date, code),
             )
 
             frappe.db.commit()
@@ -485,11 +603,12 @@ def update_form_data(form_data):
                     existing_techs.append(tech)
             if existing_techs:
                 issue_doc._assign = json.dumps(existing_techs)
+                issue_doc.mntc_date = date
                 frappe.db.sql(
                     """
-                    UPDATE `tabMaintenance Visit` SET `_assign` = %s WHERE name = %s
+                    UPDATE `tabMaintenance Visit` SET `_assign` = %s, `mntc_date` = %s WHERE name = %s
                     """,
-                    (json.dumps(existing_techs), code),
+                    (json.dumps(existing_techs), date, code),
                 )
             else:
                 issue_doc._assign = ""

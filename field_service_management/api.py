@@ -59,7 +59,6 @@ def login(email, password):
             "message": str(e)
         }
 
-
 @frappe.whitelist(allow_guest=True)
 def get_maintenance():
     authorization_header = frappe.get_request_header("Authorization")
@@ -146,12 +145,15 @@ def get_maintenance():
             "custom_item_current_installation_address_name"
         )
         if not delivery_note_name:
-            frappe.throw(f"No Serial No found for address: {visit_doc.delivery_addres}")
-        address = frappe.get_doc("Address", delivery_note_name)
-        geolocation = address.geolocation
+            address = frappe.get_doc("Address", "Default-Other")
+            geolocation = address.geolocation
+        else:
+            address = frappe.get_doc("Address", delivery_note_name)
+            geolocation = address.geolocation
 
         if not geolocation:
-            frappe.throw(f"No geolocation found for address: {address.name}")
+            address = frappe.get_doc("Address", "Default-Other")
+            geolocation = address.geolocation
 
         # Parse geolocation and assign it to the visit_doc
         geolocation = json.loads(geolocation)
@@ -181,7 +183,6 @@ def get_maintenance():
         visits_with_details.append(visit_data)
     
     return visits_with_details
-
 
 @frappe.whitelist(allow_guest=True)
 def update_spare_item(status, name):
@@ -287,7 +288,6 @@ def check_300m_radius(lat1, lon1, lat2, lon2):
     
     # Check if the distance is less than or equal to the given radius
     return {"status": "success", "distance": f"Distance between customer location and technician location is '{distance}'.", "message": distance <= radius}
-
 
 @frappe.whitelist(allow_guest=True)
 def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_type="First Visit", is_completed='no'):
@@ -410,7 +410,6 @@ def update_punch_in_out(maintenance_visit, punch_in=None, punch_out=None, visit_
 
     return {"status": "failed", "message": "Invalid operation"}
 
-
 def get_time_difference(start_time, end_time):
     """
     Calculate the time difference between two datetime values.
@@ -506,11 +505,14 @@ def get_maintenance_(name = None):
         "custom_item_current_installation_address_name"
     )
     if not delivery_note_name:
-        frappe.throw(f"No Serial No found for address: {visit_doc.delivery_addres}")
-    address = frappe.get_doc("Address", delivery_note_name)
-    geolocation = address.geolocation
+        address = frappe.get_doc("Address", "Default-Other")
+        geolocation = address.geolocation
+    else:
+        address = frappe.get_doc("Address", delivery_note_name)
+        geolocation = address.geolocation
     if not geolocation:
-        frappe.throw(f"No geolocation found for address: {address.name}")
+        address = frappe.get_doc("Address", "Default-Other")
+        geolocation = address.geolocation
     # Parse geolocation and assign it to the visit_doc
     geolocation = json.loads(geolocation)
     visit_data["geolocation"] = geolocation
@@ -536,7 +538,6 @@ def get_maintenance_(name = None):
     visit_data['symptoms_table'] = symptoms_table
 
     return visit_data
-
 
 @frappe.whitelist(allow_guest=True)
 def update_checktree(status, name):
@@ -616,6 +617,7 @@ def attachment(maintenance_visit):
         # Step 3: Get the uploaded file from the request
         uploaded_file = frappe.request.files['image']
         file_content = uploaded_file.stream.read()
+        caption = frappe.request.form.get('caption')
 
         # Step 4: Get the file extension from the content
         file_extension = imghdr.what(None, file_content)
@@ -655,7 +657,8 @@ def attachment(maintenance_visit):
             "parenttype": "Maintenance Visit",
             "parentfield": "attachments",
             "maintenance_visit": maintenance_visit,
-            "image": file_doc.file_url
+            "image": file_doc.file_url,
+            "caption": caption
         })
         new_attachment.insert(ignore_permissions=True)
         frappe.db.commit()
@@ -691,7 +694,6 @@ def technician_notes(maintenance_visit, note):
     maintenance.save()  # Save the updated document
     
     return {"status": "Success", "message": f"Service Tech Notes updated for Maintenance Visit '{maintenance_visit}'."}
-
 
 @frappe.whitelist(allow_guest=True)
 def add_symptom_requests(maintenance_visit, item_code, symptoms=None):
@@ -936,7 +938,6 @@ def populate_initial_serial_card_history():
     return {
         "message": f"{updated_count} Serial No records updated successfully."
     }
-
 
 @frappe.whitelist(allow_guest=True)
 def delete_all_serial_card_history():

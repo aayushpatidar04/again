@@ -492,7 +492,7 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
 
 				$('#' + contentId).addClass('show active');
 			});
-		}, 1000);
+		}, 3000);
 
 		//update modal
 		$(document).on("click", ".update", function () {
@@ -529,6 +529,20 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
 			});
 
 		});
+
+		// $(document).on("click", "#lead-tab", function(){
+		// 	$("#maintenance-tab").css("text-decoration", "none");
+		// 	$("#lead-tab").css("text-decoration", "underline");
+		// 	$("#maintenance-tab-body").css("display", "none");
+		// 	$("#lead-body").css("display", "block");
+		// })
+		// $(document).on("click", "#maintenance-tab", function() {
+		// 	$("#lead-tab").css("text-decoration", "none");
+		// 	$("#maintenance-tab").css("text-decoration", "underline");
+		
+		// 	$("#lead-body").css("display", "none");
+		// 	$("#maintenance-tab-body").css("display", "block");
+		// });
 
 
 	});
