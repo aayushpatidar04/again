@@ -90,8 +90,12 @@ def get_context(context=None):
             issue._assign = "No one assigned"
         #geolocation --------------------------------------------------
         geolocation = frappe.get_all('Address', filters = {'name' : issue.customer_address}, fields = ['geolocation'])
-        geolocation = json.loads(geolocation[0].geolocation)
-        issue.geolocation = json.dumps(geolocation['features']).replace('"', "'")
+        if(geolocation[0].geolocation):
+            geolocation = json.loads(geolocation[0].geolocation)
+            issue.geolocation = json.dumps(geolocation['features']).replace('"', "'")
+        else:
+            geolocation = None
+            issue.geolocation = geolocation
         # issue.geolocation = geolocation
         # checklist tree ----------------------------------------------
         checklist = frappe.get_all(
