@@ -219,7 +219,9 @@ def get_context(context=None):
                         AND from_date <= %(date)s
                         AND to_date >= %(date)s;
                 """
-            leaves = frappe.db.sql(query, {"employee": employee, "date": date}, as_dict=True)
+                leaves = frappe.db.sql(query, {"employee": employee, "date": date}, as_dict=True)
+            else:
+                leaves = None
             if(leaves):
                 for leave in leaves:
                     if (leave.half_day == 1):
