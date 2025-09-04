@@ -209,7 +209,7 @@ def get_context(context=None):
             """
             leaves = frappe.db.sql(query, {"employee": employee, "date": date}, as_dict=True)
         else:
-            leaves = None
+            leaves = []
         if(leaves):
             for leave in leaves:
                 if (leave.half_day == 1):
