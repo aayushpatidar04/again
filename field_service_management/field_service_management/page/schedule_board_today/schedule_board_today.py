@@ -301,6 +301,10 @@ def get_context(context=None):
             task.duration_in_hours = time_diff.total_seconds() / 3600
             task.flag = 0
         tech.tasks = tasks
+
+        query = None
+        leaves = []
+        
         employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
         if employee:
             query = """

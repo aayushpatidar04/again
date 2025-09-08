@@ -201,6 +201,10 @@ def get_context(context=None):
         total_hours = 0
         for date in dates:
             tss = tasks_by_date[date]
+            
+            query = None
+            leaves = []
+
             employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
             if employee:
                 query = """
