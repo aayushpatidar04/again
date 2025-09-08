@@ -231,7 +231,7 @@ def get_context(context=None):
         for slot in time_slots:
             if count == -0.5:
                 ttt = slot['time'] - timedelta(minutes=30)
-                html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                html_content += f'<div style="width: 50px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" class="px-1">-</div>'
                 count += 0.5
             if slot['label'] == '01:00 PM' and afternoon == 1:
                 count += 8
