@@ -1,3 +1,4 @@
+
 import jwt
 import frappe
 from frappe import _
@@ -539,34 +540,342 @@ def get_maintenance_(name = None):
 
     return visit_data
 
+# @frappe.whitelist(allow_guest=True)
+# def update_checktree(status, name):
+#     authorization_header = frappe.get_request_header("Authorization")
+#     if not authorization_header:
+#         return { "status": "error", "message": "Missing Authorization header"}
+#     api_key = frappe.get_request_header("Authorization").split(" ")[1].split(":")[0]
+#     # Find the user associated with the API key
+#     user = frappe.db.get_value("User", {"api_key": api_key}, "name")
+    
+#     if not user:
+#         return {"status": "failed", "message": "Invalid API key"}
+#     checklist = frappe.get_doc("Maintenance Visit Checklist", name)
+#     if not checklist:
+#         return {"status": "error", "message": f"Checklist with name '{name}' not found"}
+
+#     # Update the 'collected' field with the provided status
+#     if status == 'yes':
+#         checklist.work_done = 'Yes'
+#         checklist.done_by = user
+#     else:
+#         checklist.work_done = 'No'
+#         checklist.done_by = None
+#     checklist.flags.ignore_permissions = True
+#     checklist.save()
+#     # Commit the changes to the database
+#     frappe.db.commit()
+
+#     return {"status": "success", "message": f"Checklist '{name}' updated successfully", "work done": status}
+
+
 @frappe.whitelist(allow_guest=True)
-def update_checktree(status, name):
+def update_checktree(status, name=None, sub_step_name=None):
+    """
+    Update checklist or sub-step work status
+    
+    Args:
+        status: 'yes' or 'no'
+        name: (Optional) Name of the Maintenance Visit Checklist row (e.g., "a6po3pq7ak")
+        sub_step_name: (Optional) Name of the work log record (e.g., "2kn6f2fgld")
+    
+    Note: Either 'name' or 'sub_step_name' must be provided, but not necessarily both.
+    """
     authorization_header = frappe.get_request_header("Authorization")
     if not authorization_header:
-        return { "status": "error", "message": "Missing Authorization header"}
+        return {"status": "error", "message": "Missing Authorization header"}
+    
     api_key = frappe.get_request_header("Authorization").split(" ")[1].split(":")[0]
-    # Find the user associated with the API key
     user = frappe.db.get_value("User", {"api_key": api_key}, "name")
     
     if not user:
         return {"status": "failed", "message": "Invalid API key"}
+    
+    # Case 1: Update SUB-STEP work done
+    if sub_step_name:
+        return update_sub_step_by_name(sub_step_name, status, user)
+    
+    # Case 2: Update MAIN CHECKLIST work done
+    elif name:
+        return update_main_checklist(name, status, user)
+    
+    # Case 3: Neither provided - error
+    else:
+        return {
+            "status": "error",
+            "message": "Either 'name' or 'sub_step_name' must be provided"
+        }
+
+
+def update_main_checklist(name, status, user):
+    """Update main checklist item (existing logic)"""
     checklist = frappe.get_doc("Maintenance Visit Checklist", name)
     if not checklist:
         return {"status": "error", "message": f"Checklist with name '{name}' not found"}
-
-    # Update the 'collected' field with the provided status
+    
     if status == 'yes':
         checklist.work_done = 'Yes'
         checklist.done_by = user
     else:
         checklist.work_done = 'No'
         checklist.done_by = None
+    
     checklist.flags.ignore_permissions = True
     checklist.save()
-    # Commit the changes to the database
     frappe.db.commit()
+    
+    return {
+        "status": "success",
+        "message": f"Checklist '{name}' updated successfully",
+        "work_done": status
+    }
 
-    return {"status": "success", "message": f"Checklist '{name}' updated successfully", "work done": status}
+
+# def update_sub_step(checklist_row_name, sub_step_original_name, status, user):
+#     """Update sub-step work done in custom_sub_steps_work_log"""
+    
+#     # Find the sub-step work log entry
+#     sub_step_work = frappe.db.get_value(
+#         "Maintenance Visit Sub Step Work",
+#         {
+#             "parent_checklist_row": checklist_row_name,
+#             "sub_step_original_name": sub_step_original_name
+#         },
+#         ["name", "parent"],
+#         as_dict=True
+#     )
+    
+#     if not sub_step_work:
+#         return {
+#             "status": "error",
+#             "message": f"Sub-step '{sub_step_original_name}' not found in checklist '{checklist_row_name}'"
+#         }
+    
+#     # Get parent Maintenance Visit
+#     visit_doc = frappe.get_doc("Maintenance Visit", sub_step_work.parent)
+    
+#     # Find and update the specific sub-step
+#     updated = False
+#     for sub_step in visit_doc.custom_sub_steps_work_log:
+#         if (sub_step.parent_checklist_row == checklist_row_name and 
+#             sub_step.sub_step_original_name == sub_step_original_name):
+            
+#             if status == 'yes':
+#                 sub_step.work_done = 'Yes'
+#                 sub_step.done_by = user
+#             else:
+#                 sub_step.work_done = 'No'
+#                 sub_step.done_by = None
+            
+#             updated = True
+#             break
+    
+#     if not updated:
+#         return {
+#             "status": "error",
+#             "message": "Sub-step not found in document"
+#         }
+
+#     for checklist in visit_doc.checktree_description:
+#         if checklist.name == checklist_row_name:
+            
+#             # Update sub_steps_json
+#             if checklist.sub_steps_json:
+#                 try:
+#                     sub_steps_json = json.loads(checklist.sub_steps_json)
+                    
+#                     for sub_step_json in sub_steps_json:
+#                         if sub_step_json.get('name') == sub_step_original_name:
+#                             if status == 'yes':
+#                                 sub_step_json['work_done'] = 'Yes'
+#                             else:
+#                                 sub_step_json['work_done'] = 'No'
+#                             break
+                    
+#                     checklist.sub_steps_json = json.dumps(sub_steps_json)
+                
+#                 except (json.JSONDecodeError, TypeError) as e:
+#                     frappe.log_error(f"Error parsing sub_steps_json: {str(e)}", "Sub-step JSON Update Error")
+            
+#             # Update sub_steps_format_for_mobile_apk
+#             if checklist.sub_steps_format_for_mobile_apk:
+#                 try:
+#                     mobile_format = json.loads(checklist.sub_steps_format_for_mobile_apk)
+                    
+#                     for mobile_step in mobile_format:
+                        
+#                         # Find the idx from sub_steps_json first
+#                         sub_step_idx = None
+#                         if checklist.sub_steps_json:
+#                             sub_steps_json = json.loads(checklist.sub_steps_json)
+#                             for sj in sub_steps_json:
+#                                 if sj.get('name') == sub_step_original_name:
+#                                     sub_step_idx = sj.get('idx')
+#                                     break
+                        
+#                         # Now update mobile format by idx
+#                         if sub_step_idx and mobile_step.get('idx') == sub_step_idx:
+#                             if status == 'yes':
+#                                 mobile_step['work_done'] = 'Yes'
+#                             else:
+#                                 mobile_step['work_done'] = 'No'
+#                             break
+                    
+#                     checklist.sub_steps_format_for_mobile_apk = json.dumps(mobile_format)
+                
+#                 except (json.JSONDecodeError, TypeError) as e:
+#                     frappe.log_error(f"Error parsing sub_steps_format_for_mobile_apk: {str(e)}", "Mobile Format Update Error")
+            
+#             break
+    
+#     # Save
+#     visit_doc.flags.ignore_permissions = True
+#     visit_doc.save()
+#     frappe.db.commit()
+    
+#     return {
+#         "status": "success",
+#         "message": f"Sub-step updated successfully",
+#         "work_done": status,
+#         "done_by": user if status == 'yes' else None
+#     }
+
+def update_sub_step_by_name(sub_step_name, status, user):
+    """
+    Update sub-step work done using the work log record name directly
+    
+    Args:
+        sub_step_name: The 'name' field from Maintenance Visit Sub Step Work (e.g., "2kn6f2fgld")
+        status: 'yes' or 'no'
+        user: Current user
+    """
+    import json
+    
+    # Get the work log entry directly
+    work_log = frappe.get_doc("Maintenance Visit Sub Step Work", sub_step_name)
+    
+    if not work_log:
+        return {
+            "status": "error",
+            "message": f"Sub-step work log '{sub_step_name}' not found"
+        }
+    
+    # Get parent Maintenance Visit
+    visit_doc = frappe.get_doc("Maintenance Visit", work_log.parent)
+    
+    # Step 1: Update custom_sub_steps_work_log
+    for sub_step in visit_doc.custom_sub_steps_work_log:
+        if sub_step.name == sub_step_name:
+            if status == 'yes':
+                sub_step.work_done = 'Yes'
+                sub_step.done_by = user
+            else:
+                sub_step.work_done = 'No'
+                sub_step.done_by = None
+            break
+    
+    # Step 2 & 3: Update JSON fields in checktree_description
+    checklist_row_name = work_log.parent_checklist_row
+    sub_step_original_name = work_log.sub_step_original_name
+
+    parent_checklist = None
+    
+    for checklist in visit_doc.checktree_description:
+        if checklist.name == checklist_row_name:
+            parent_checklist = checklist
+            
+            # Update sub_steps_json
+            if checklist.sub_steps_json:
+                try:
+                    sub_steps_json = json.loads(checklist.sub_steps_json)
+                    
+                    for sub_step_json in sub_steps_json:
+                        if sub_step_json.get('name') == sub_step_original_name:
+                            sub_step_json['work_done'] = 'Yes' if status == 'yes' else 'No'
+                            break
+                    
+                    checklist.sub_steps_json = json.dumps(sub_steps_json)
+                
+                except (json.JSONDecodeError, TypeError) as e:
+                    frappe.log_error(f"Error parsing sub_steps_json: {str(e)}", "Sub-step JSON Update Error")
+            
+            # Update sub_steps_format_for_mobile_apk
+            if checklist.sub_steps_format_for_mobile_apk:
+                try:
+                    mobile_format = json.loads(checklist.sub_steps_format_for_mobile_apk)
+                    
+                    for mobile_step in mobile_format:
+                        if mobile_step.get('sub_step_name') == sub_step_name:
+                            mobile_step['work_done'] = 'Yes' if status == 'yes' else 'No'
+                            break
+                    
+                    checklist.sub_steps_format_for_mobile_apk = json.dumps(mobile_format)
+                
+                except (json.JSONDecodeError, TypeError) as e:
+                    frappe.log_error(f"Error parsing sub_steps_format_for_mobile_apk: {str(e)}", "Mobile Format Update Error")
+            
+            break
+    
+    # Step 4: Check if all sub-steps are complete and auto-update parent checklist
+    if parent_checklist:
+        all_sub_steps_complete = check_all_sub_steps_complete(
+            visit_doc, 
+            checklist_row_name
+        )
+        
+        if all_sub_steps_complete:
+            parent_checklist.work_done = 'Yes'
+            parent_checklist.done_by = user
+        else:
+            # If any sub-step is not complete, set parent to 'No'
+            parent_checklist.work_done = 'No'
+            parent_checklist.done_by = None
+    
+    # Save the entire document
+    visit_doc.flags.ignore_permissions = True
+    visit_doc.save()
+    frappe.db.commit()
+    
+    return {
+        "status": "success",
+        "message": f"Sub-step updated successfully",
+        "work_done": status,
+        "done_by": user if status == 'yes' else None,
+        "parent_checklist_auto_updated": all_sub_steps_complete if parent_checklist else False
+    }
+
+
+def check_all_sub_steps_complete(visit_doc, parent_checklist_row):
+    """
+    Check if all sub-steps for a given checklist row are marked as complete
+    
+    Args:
+        visit_doc: Maintenance Visit document
+        parent_checklist_row: Name of the parent checklist row
+    
+    Returns:
+        True if all sub-steps are 'Yes', False otherwise
+    """
+    # Get all sub-steps for this checklist row
+    sub_steps_for_checklist = [
+        sub_step for sub_step in visit_doc.custom_sub_steps_work_log
+        if sub_step.parent_checklist_row == parent_checklist_row
+    ]
+    
+    # If there are no sub-steps, return False (don't auto-complete)
+    if not sub_steps_for_checklist:
+        return False
+    
+    # Check if ALL sub-steps are marked as 'Yes'
+    all_complete = all(
+        sub_step.work_done == 'Yes' 
+        for sub_step in sub_steps_for_checklist
+    )
+    
+    return all_complete
+
+
 
 @frappe.whitelist(allow_guest=True)
 def live_location(lat, lon):
