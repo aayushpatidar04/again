@@ -571,7 +571,8 @@ def get_maintenance_(name = None):
 
 
 @frappe.whitelist(allow_guest=True)
-def update_checktree(status, name=None, sub_step_name=None):
+# def update_checktree(status, name=None, sub_step_name=None):
+def update_checktree(**kwargs):
     """
     Update checklist or sub-step work status
     
@@ -591,6 +592,10 @@ def update_checktree(status, name=None, sub_step_name=None):
     
     if not user:
         return {"status": "failed", "message": "Invalid API key"}
+
+    status = kwargs.get('status')
+    name = kwargs.get('name')
+    sub_step_name = kwargs.get('sub_step_name')
     
     # Case 1: Update SUB-STEP work done
     if sub_step_name:
