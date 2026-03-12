@@ -810,11 +810,8 @@ def update_sub_step_by_name(sub_step_name, status, user):
                 try:
                     mobile_format = json.loads(checklist.sub_steps_format_for_mobile_apk)
                     
-                    # Match by sub_step description (the 'name' field in mobile format)
-                    sub_step_description = work_log.sub_step_name
-                    
                     for mobile_step in mobile_format:
-                        if mobile_step.get('name') == sub_step_description:
+                        if mobile_step.get('sub_step_name') == sub_step_name:
                             mobile_step['work_done'] = 'Yes' if status == 'yes' else 'No'
                             break
                     
