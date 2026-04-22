@@ -810,9 +810,21 @@ def update_sub_step_by_name(sub_step_name, status, user):
                 try:
                     mobile_format = json.loads(checklist.sub_steps_format_for_mobile_apk)
                     
+                    # for mobile_step in mobile_format:
+                    #     if mobile_step.get('sub_step_name') == sub_step_name:
+                    #         mobile_step['work_done'] = 'Yes' if status == 'yes' else 'No'
+                    #         break
+
+                    # Fixed — uses idx as fallback
                     for mobile_step in mobile_format:
                         if mobile_step.get('sub_step_name') == sub_step_name:
                             mobile_step['work_done'] = 'Yes' if status == 'yes' else 'No'
+                            break
+                        elif not mobile_step.get('sub_step_name') and mobile_step.get('idx') == work_log.idx:
+                            mobile_step['work_done'] = 'Yes' if status == 'yes' else 'No'
+                            # Also backfill sub_step_name and parent_step_name while we're here
+                            mobile_step['sub_step_name'] = sub_step_name
+                            mobile_step['parent_step_name'] = checklist_row_name
                             break
                     
                     checklist.sub_steps_format_for_mobile_apk = json.dumps(mobile_format)
