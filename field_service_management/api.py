@@ -796,7 +796,7 @@ def update_sub_step_by_name(sub_step_name, status, user):
                     sub_steps_json = json.loads(checklist.sub_steps_json)
                     
                     for sub_step_json in sub_steps_json:
-                        if sub_step_json.get('sub_steps_name') == sub_step_original_name:
+                        if sub_step_json.get('name') == sub_step_original_name:
                             sub_step_json['work_done'] = 'Yes' if status == 'yes' else 'No'
                             break
                     
