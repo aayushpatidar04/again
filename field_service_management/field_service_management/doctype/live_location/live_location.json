@@ -7,17 +7,22 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "employee",
+  "employee_name",
   "technician",
+  "column_break_tekx",
+  "time",
   "latitude",
   "longitude",
-  "time"
+  "section_break_ygsm",
+  "location"
  ],
  "fields": [
   {
    "fieldname": "technician",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Name",
+   "label": "User",
    "options": "User",
    "reqd": 1
   },
@@ -41,11 +46,39 @@
    "in_list_view": 1,
    "label": "Time",
    "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "depends_on": "employee",
+   "fetch_from": "employee.employee_name",
+   "fetch_if_empty": 1,
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tekx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ygsm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Geolocation",
+   "label": "Location"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-09 19:42:44.844337",
+ "modified": "2026-06-03 09:15:20.285494",
  "modified_by": "Administrator",
  "module": "Field Service Management",
  "name": "Live Location",

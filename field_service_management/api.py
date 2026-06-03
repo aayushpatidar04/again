@@ -905,13 +905,44 @@ def live_location(lat, lon):
 
     if not user:
         return {"status": "failed", "message": "Invalid API key"}
-    new_record = frappe.get_doc({
-        "doctype": "Live Location",
-        "latitude": lat,
-        "longitude": lon,
-        "technician": user,
-        "time": now_datetime(),
-    })
+
+    employee_data = (
+        frappe.db.get_value(
+            "Employee", {"user_id": user}, ["name", "employee_name"], as_dict=True
+        )
+        or {}
+    )
+
+    location = None
+    if lat and lon:
+        location = json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [lon, lat],  # Note: [lng, lat]
+                        },
+                    }
+                ],
+            }
+        )
+
+    new_record = frappe.get_doc(
+        {
+            "doctype": "Live Location",
+            "latitude": lat,
+            "longitude": lon,
+            "employee": employee_data.get("name"),
+            "employee_name": employee_data.get("employee_name"),
+            "technician": user,
+            "location": location,
+            "time": now_datetime(),
+        }
+    )
     new_record.insert(ignore_permissions=True)
     frappe.db.commit()
     return {"status": "success", "message": "Updated live Location"}
