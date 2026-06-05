@@ -3,6 +3,7 @@ from frappe import _
 import json
 from datetime import datetime
 from datetime import timedelta
+from frappe.contacts.doctype.address.address import get_address_display
 
 
 @frappe.whitelist()
@@ -564,7 +565,7 @@ def get_live_locations():
     maintenance_records = frappe.db.sql("""
         SELECT name, delivery_addres, customer, maintenance_type, completion_status
         FROM `tabMaintenance Visit`
-        WHERE completion_status != 'Fully Completed'
+        WHERE completion_status != 'Fully Completed and docstatus != 2'
     """, as_dict=True)
     
 
@@ -578,20 +579,39 @@ def get_live_locations():
             "custom_item_current_installation_address_name"
         )
         if not delivery_note_name:
-            frappe.throw(f"No Serial No found for address: {visit_doc.delivery_addres}")
-        address = frappe.get_doc("Address", delivery_note_name)
-        geolocation = address.geolocation
-        if geolocation:
-            # Check if geolocation is a string that needs to be loaded as JSON
-            if isinstance(geolocation, str):
-                try:
-                    geolocation = json.loads(geolocation)
-                except json.JSONDecodeError:
-                    frappe.log_error(f"Invalid geolocation data for address: {address.name}", "Field Service Management")
+            addresses = frappe.db.get_all(
+                "Address",
+                [
+                    ["Dynamic Link", "link_doctype", "=", "Customer"],
+                    [
+                        "Dynamic Link",
+                        "link_name",
+                        "=",
+                        visit_doc.customer,
+                    ],
+                ],
+            )
+            for address in addresses:
+                address_display = get_address_display(address["name"])
+                if address_display == visit_doc.delivery_addres:
+                    delivery_note_name = address
+                    break
+
+        geolocation = None
+        if delivery_note_name:
+            address = frappe.get_doc("Address", delivery_note_name)
+            geolocation = address.geolocation
+            if geolocation:
+                # Check if geolocation is a string that needs to be loaded as JSON
+                if isinstance(geolocation, str):
+                    try:
+                        geolocation = json.loads(geolocation)
+                    except json.JSONDecodeError:
+                        frappe.log_error(f"Invalid geolocation data for address: {address.name}", "Field Service Management")
+                        geolocation = None
+                elif not isinstance(geolocation, dict):
+                    frappe.log_error(f"Unexpected geolocation format for address: {address.name}", "Field Service Management")
                     geolocation = None
-            elif not isinstance(geolocation, dict):
-                frappe.log_error(f"Unexpected geolocation format for address: {address.name}", "Field Service Management")
-                geolocation = None
 
         maintenance_visits.append({
             "visit_id": visit.name,
@@ -605,3 +625,4 @@ def get_live_locations():
         "technicians": technicians,
         "maintenance": maintenance_visits
     }
+
