@@ -400,8 +400,9 @@ def get_context(context=None):
                                 <div class="modal-body">
                                     <form id="custom2-form-{task_in_slot['issue_code']}" class="custom-form" method="POST">
                                         <label for="code">Maintenance Visit Code:</label>
-                                        <input class="form-control code" type="text" name="code" value="{task_in_slot['issue_code']}" required
-                                            readonly><br><br>
+                                        
+                                        <input class="form-control code clickable-code" type="text" name="code" value="{task_in_slot['issue_code']}" required
++                                            readonly style="cursor: pointer;" onclick="window.open('/app/maintenance-visit/{task_in_slot['issue_code']}', '_blank')"><br><br>
 
                                         <label for="technician">Select Co-Technicians (<span class="text-danger">only if more than one technician required</span>):</label><br>
                                         <select class="form-select technician" style="width:100%" name="technician[]" multiple="multiple" required>"""
