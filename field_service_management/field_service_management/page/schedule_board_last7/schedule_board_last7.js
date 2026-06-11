@@ -74,7 +74,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function(wrapper) {
 				geoDiv.data('mapInstance', map);
 
 				frappe.call({
-					method: "field_service_management.field_service_management.page.schedule_board_last7.schedule_board_last7.get_cords",
+					method: "field_service_management.field_service_management.page.api.get_cords",
 					callback: function (r) {
 						if (r.message) {
 							const technicians = r.message;
@@ -124,7 +124,20 @@ frappe.pages['schedule-board-last7'].on_page_load = function(wrapper) {
 
 							technicians.forEach(tech => {
 								L.marker([tech.latitude, tech.longitude], { icon: greenIcon }).addTo(map)
-									.bindPopup('<b>Technician: ' + tech.technician + '</b>');
+									.bindPopup(`
+										<div style="font-family:Inter,Arial,sans-serif;line-height:1.4;">
+											<strong>${tech.technician_name}</strong><br>
+											<span style="color:#6B7280;font-size:12px;">
+												${tech.technician}
+											</span><br><br>
+											<span style="font-size:12px;">
+												📍 ${Number(tech.latitude).toFixed(4)}, ${Number(tech.longitude).toFixed(4)}
+											</span><br>
+											<span style="font-size:12px;">
+												🕒 ${tech.time}
+											</span>
+										</div>
+									`);
 							});
 						} else {
 							console.log("No cords returned from the server.");
@@ -200,7 +213,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function(wrapper) {
 			// Function to fetch and display locations
 			function fetchAndDisplayLocations() {
 				frappe.call({
-					method: "field_service_management.field_service_management.page.schedule_board_last7.schedule_board_last7.get_live_locations",
+					method: "field_service_management.field_service_management.page.api.get_live_locations",
 					callback: function (r) {
 						if (r.message) {
 							const { technicians, maintenance } = r.message;
@@ -216,7 +229,20 @@ frappe.pages['schedule-board-last7'].on_page_load = function(wrapper) {
 							technicians.forEach(tech => {
 								L.marker([tech.latitude, tech.longitude], { icon: technicianIcon })
 									.addTo(liveMap)
-									.bindPopup(`<b>Technician: ${tech.technician}</b><br>Lat: ${tech.latitude}, Lng: ${tech.longitude}`);
+									.bindPopup(`
+										<div style="font-family:Inter,Arial,sans-serif;line-height:1.4;">
+											<strong>${tech.technician_name}</strong><br>
+											<span style="color:#6B7280;font-size:12px;">
+												${tech.technician}
+											</span><br><br>
+											<span style="font-size:12px;">
+												📍 ${Number(tech.latitude).toFixed(4)}, ${Number(tech.longitude).toFixed(4)}
+											</span><br>
+											<span style="font-size:12px;">
+												🕒 ${tech.time}
+											</span>
+										</div>
+									`);
 							});
 
 							// Add maintenance visit markers
@@ -279,8 +305,8 @@ frappe.pages['schedule-board-last7'].on_page_load = function(wrapper) {
 			// Fetch and display the initial set of locations
 			fetchAndDisplayLocations();
 
-			// Set an interval to update locations periodically (every 30 seconds)
-			updateInterval = setInterval(fetchAndDisplayLocations, 120000);
+			// Set an interval to update locations periodically (every 60 seconds)
+			updateInterval = setInterval(fetchAndDisplayLocations, 60*1000);
 		});
 
 		setTimeout(function () {
