@@ -10,13 +10,18 @@ MAINTENANCE_VISITS_CACHE_TTL = 60
 @frappe.whitelist()
 def get_technicians():
     query = """
-    SELECT technician, latitude, longitude, time, employee_name as technician_name
-    FROM `tabLive Location` 
-    WHERE (technician, time) IN (
-        SELECT technician, MAX(time) 
-        FROM `tabLive Location` 
+    SELECT ll.technician, ll.latitude, ll.longitude, ll.time, ll.employee_name AS technician_name
+    FROM `tabLive Location` ll
+    JOIN (
+        SELECT technician, MAX(time) AS latest_time
+        FROM `tabLive Location`
         GROUP BY technician
-    )
+    ) latest
+        ON latest.technician = ll.technician
+        AND latest.latest_time = ll.time
+    JOIN `tabUser` u
+        ON u.name = ll.technician
+    WHERE u.enabled = 1
     """
     technicians = frappe.db.sql(query, as_dict=True)
 
@@ -104,7 +109,10 @@ def get_maintenance_visits(use_cache=True):
         serial_rows = frappe.get_all(
             "Serial No",
             filters={
-                "custom_item_current_installation_address": ["in", list(delivery_addresses)]
+                "custom_item_current_installation_address": [
+                    "in",
+                    list(delivery_addresses),
+                ]
             },
             fields=[
                 "custom_item_current_installation_address",
@@ -156,7 +164,9 @@ def get_maintenance_visits(use_cache=True):
     for visit in unresolved_visits:
         for address_name in customer_address_names.get(visit.customer, []):
             if address_name not in display_by_address_name:
-                display_by_address_name[address_name] = get_address_display(address_name)
+                display_by_address_name[address_name] = get_address_display(
+                    address_name
+                )
             if display_by_address_name[address_name] == visit.delivery_addres:
                 serial_address_by_delivery_address[visit.delivery_addres] = address_name
                 break
@@ -184,7 +194,6 @@ def get_maintenance_visits(use_cache=True):
         _set_cached_maintenance_visits(maintenance_visits)
 
     return maintenance_visits
-
 
 
 @frappe.whitelist()
