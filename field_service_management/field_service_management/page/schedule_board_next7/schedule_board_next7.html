@@ -262,16 +262,18 @@
                     <div class="col-4 mb-1 text-center"
                         style="border-bottom: 1px solid #000; border-right: 1px solid #000;"><b>Users</b></div>
                     <div class="col-8 mb-1 d-flex scrollable-x" style="width: 100%; overflow-x: auto; white-space: nowrap;">
-                        {% for date in dates %}
-                        <div>
-                            <div style="border-right: 1px solid #000; text-align: center;"><u><b>{{ date }}</b></u></div>
-                            <div class="d-flex" style="border-bottom: 1px solid #000;">
-                                {% for slot in slots %}
-                                <div style="width: 25px; border-right: 1px solid #000;" class="px-1">{{ slot.label }}</div>
-                                {% endfor %}
+                    {% for date in dates %}
+                    <div style="margin-right: 8px;">
+                        <div style="border-right: 1px solid #000; text-align: center;"><u><b>{{ date }}</b></u></div>
+                        <div class="d-flex" style="border-bottom: 1px solid #000;">
+                            {% for slot in slots %}
+                            <div style="width: 12.5px; box-sizing: border-box; padding-left: 2px; white-space: nowrap; overflow: visible; font-size: 10px; text-align: left;" class="px-0">
+                                {% if slot.is_hour %}{{ slot.label }}{% endif %}
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                    </div>
+                    {% endfor %}
                     </div>
                     {% for item in technicians%}
                     <div class="col-4 mb-1" style="border-bottom: 1px solid #000; border-right: 1px solid #000;">
