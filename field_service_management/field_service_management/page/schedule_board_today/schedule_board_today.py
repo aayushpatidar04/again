@@ -6,26 +6,15 @@ from datetime import timedelta
 from frappe.contacts.doctype.address.address import get_address_display
 
 
-
-
-
-
-
-
-@frappe.whitelist()
 @frappe.whitelist()
 def get_context(context=None):
   context = context or {}
   user = frappe.session.user
 
 
-
-
   issues = []
   lead_issues = []
   technicians = []
-
-
 
 
   role_profile = frappe.db.get_value("User", user, "role_profile_name")
@@ -85,8 +74,6 @@ def get_context(context=None):
       technicians = technician_list
 
 
-
-
   def enrich_issue(issue):
       if issue._assign:
           try:
@@ -99,16 +86,12 @@ def get_context(context=None):
           issue._assign = "No one assigned"
 
 
-
-
       geolocation = frappe.get_all('Address', filters={'name': issue.customer_address}, fields=['geolocation'])
       if geolocation and geolocation[0].geolocation:
           geo = json.loads(geolocation[0].geolocation)
           issue.geolocation = json.dumps(geo['features']).replace('"', "'")
       else:
           issue.geolocation = None
-
-
 
 
       checklist = frappe.get_all(
@@ -131,8 +114,6 @@ def get_context(context=None):
       issue.checklist_tree = html_content
 
 
-
-
       issue.products = frappe.get_all(
           "Maintenance Visit Purpose", filters={"parent": issue.name},
           fields=['item_code', 'item_name', 'custom_image']
@@ -141,8 +122,6 @@ def get_context(context=None):
           "Spare Part", filters={"parent": issue.name},
           fields=['item_code', 'description', 'periodicity', 'uom']
       )
-
-
 
 
       symptoms = frappe.get_all(
@@ -164,25 +143,17 @@ def get_context(context=None):
       issue.symptoms_res = html_content
 
 
-
-
   for issue in issues:
       enrich_issue(issue)
   for issue in lead_issues:
       enrich_issue(issue)
 
 
-
-
   context["issues"] = issues
   context["lead_issues"] = lead_issues
 
 
-
-
   date = datetime.now().date()
-
-
 
 
   # Same half-hour grid as the Next 7 Days board (READ-ONLY from here on).
@@ -193,11 +164,7 @@ def get_context(context=None):
           BASE_TIME_SLOTS.append({"label": "", "display_label": "", "time": timedelta(hours=h, minutes=30), "is_hour": False})
 
 
-
-
   slot_width_percent = 100 / len(BASE_TIME_SLOTS)
-
-
 
 
   assigned_tasks_today = frappe.get_all(
@@ -207,12 +174,8 @@ def get_context(context=None):
   )
 
 
-
-
   def get_not_available(slot_time):
       return [t.technician for t in assigned_tasks_today if t.stime <= slot_time < t.etime]
-
-
 
 
   maintenance_doc_cache = {}
@@ -222,12 +185,8 @@ def get_context(context=None):
       return maintenance_doc_cache[issue_code]
 
 
-
-
   LUNCH_START = timedelta(hours=12)
   LUNCH_END = timedelta(hours=13)
-
-
 
 
   for tech in technicians:
@@ -245,11 +204,7 @@ def get_context(context=None):
       tech.tasks = tasks
 
 
-
-
       total_hours = 0
-
-
 
 
       employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
@@ -266,8 +221,6 @@ def get_context(context=None):
           )
 
 
-
-
       full_day_leave = None
       morning_leave = None
       afternoon_leave = None
@@ -279,8 +232,6 @@ def get_context(context=None):
                   afternoon_leave = leave
           else:
               full_day_leave = leave
-
-
 
 
       if full_day_leave:
@@ -295,8 +246,6 @@ def get_context(context=None):
           continue
 
 
-
-
       if morning_leave:
           leave_text = morning_leave.description or "Leave"
           html_content += (f'<div style="width: {slot_width_percent * 6}%; border-right: 1px solid #fff; color: white; '
@@ -306,21 +255,15 @@ def get_context(context=None):
                             f'{leave_text}</div>')
 
 
-
-
       i = 0
       while i < len(BASE_TIME_SLOTS):
           slot = BASE_TIME_SLOTS[i]
           slot_time = slot['time']
 
 
-
-
           if morning_leave and slot_time < LUNCH_START:
               i += 1
               continue
-
-
 
 
           if slot_time == LUNCH_START:
@@ -335,13 +278,9 @@ def get_context(context=None):
               continue
 
 
-
-
           if LUNCH_START < slot_time < LUNCH_END:
               i += 1
               continue
-
-
 
 
           if afternoon_leave and slot_time >= LUNCH_END:
@@ -354,16 +293,12 @@ def get_context(context=None):
               break
 
 
-
-
           task_in_slot = None
           for task in tasks:
               if task.flag == 0 and task.stime <= slot_time < task.etime:
                   task_in_slot = task
                   task.flag = 1
                   break
-
-
 
 
           if task_in_slot:
@@ -414,14 +349,10 @@ def get_context(context=None):
                                 stime=task_in_slot['stime'], etime=task_in_slot['etime'])
 
 
-
-
               end_time = task_in_slot['etime']
               while i < len(BASE_TIME_SLOTS) and BASE_TIME_SLOTS[i]['time'] < end_time:
                   i += 1
               continue
-
-
 
 
           not_available = get_not_available(slot_time)
@@ -432,24 +363,14 @@ def get_context(context=None):
           i += 1
 
 
-
-
       tech.html_content = html_content
       tech.total_hours = round(total_hours / 11 * 100, 2)
-
-
 
 
   context["technicians"] = technicians
   context["slots"] = BASE_TIME_SLOTS
   context["message"] = "Welcome to your schedule board!"
   return context
-
-
-
-
-
-
 
 
 @frappe.whitelist()
@@ -488,11 +409,7 @@ def save_form_data(form_data):
                   }
 
 
-
-
       for tech in technicians:
-
-
 
 
           new_doc = frappe.get_doc(
@@ -506,8 +423,6 @@ def save_form_data(form_data):
               }
           )
           new_doc.insert()
-
-
 
 
       # Optionally, you can update the Issue doctype as well
@@ -528,18 +443,10 @@ def save_form_data(form_data):
           )
 
 
-
-
           frappe.db.commit()
       return {"success": "success"}
   except Exception as e:
       return {"error": "error", "message": str(e)}
-
-
-
-
-
-
 
 
 @frappe.whitelist()
@@ -564,36 +471,16 @@ def update_form_data(form_data):
           hours, minutes = map(int, stime.split(":"))
 
 
-
-
       stime = timedelta(hours=hours, minutes=minutes)
 
 
-
-
-
-
-
-
       tasks = frappe.get_all("Assigned Tasks", filters={"issue_code": code}, fields=["name"])
-
-
 
 
       if tasks:
           for task in tasks:
               frappe.delete_doc("Assigned Tasks", task.name, force=True)
           frappe.db.commit()
-
-
-
-
-
-
-
-
-
-
 
 
       for tech in technicians:
@@ -614,11 +501,7 @@ def update_form_data(form_data):
                   }
 
 
-
-
       for tech in technicians:
-
-
 
 
           new_doc = frappe.get_doc(
@@ -632,8 +515,6 @@ def update_form_data(form_data):
               }
           )
           new_doc.insert()
-
-
 
 
       # Optionally, you can update the Issue doctype as well
@@ -662,18 +543,9 @@ def update_form_data(form_data):
               )
 
 
-
-
           frappe.db.commit()
       return {"success": "success"}
   except Exception as e:
       return {"error": "error", "message": str(e)}
-
-
-
-
-
-
-
 
 
