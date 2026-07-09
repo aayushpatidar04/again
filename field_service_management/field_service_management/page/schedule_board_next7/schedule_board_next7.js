@@ -49,6 +49,11 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 			const issueId = $(this).data("issue");
 			const form = $("#custom-form-" + issueId);
 
+			if (!form.find(".etime").val()) {
+                alert("Please select an end time.");
+                return;
+            }
+
 			// Collect form data
 			const formData = {
 				code: form.find(".code").val(),
@@ -90,6 +95,49 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 			return value ? String(value).split('.')[0] : '';
 		}
 
+		function getTimeValue(date) {
+            return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+        }
+
+        function getTimeLabel(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function setEndTimeOptions(modal, selectedValue) {
+            const startValue = modal.find('.stime').val();
+            const endTimeField = modal.find('.etime');
+
+            endTimeField.empty();
+            endTimeField.append('<option value="">Select End Time</option>');
+
+            if (!startValue) {
+                return;
+            }
+
+            const [hours, minutes] = startValue.split(':').map(Number);
+            const startTime = new Date();
+            startTime.setHours(hours, minutes, 0, 0);
+
+            const endOfDay = new Date(startTime);
+            endOfDay.setHours(20, 0, 0, 0);
+
+            for (let endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+                endTime <= endOfDay;
+                endTime = new Date(endTime.getTime() + 30 * 60 * 1000)) {
+                const value = getTimeValue(endTime);
+                const label = getTimeLabel(endTime);
+                endTimeField.append('<option value="' + value + '">' + label + '</option>');
+            }
+
+            if (selectedValue) {
+                selectedValue = String(selectedValue).substring(0, 5);
+            }
+
+            if (selectedValue && endTimeField.find('option[value="' + selectedValue + '"]').length) {
+                endTimeField.val(selectedValue);
+            }
+        }
+
 		function preloadLiveLocations() {
 			if (liveMapPreloadStarted || liveMapPreloadData) {
 				return;
@@ -111,8 +159,10 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 
 		preloadLiveLocations();
 		$(document).on('click', 'a[data-id]', function () {
-			const modalId = $(this).data('id'); // Get the modal ID
-			$(`#${modalId}`).removeClass('hide').addClass('show'); // Toggle classes
+			const modalId = $(this).data('id'); 
+			const openedModal = $(`#${modalId}`);
+			openedModal.removeClass('hide').addClass('show');
+
 
 			if (modalId.startsWith('issue')) {
 				const issueId = modalId.replace('issueModal', '');
@@ -512,6 +562,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 						modal.find('.stime').val(slot.substring(0, 5));
 						modal.find('.etime').data('stime', slot.substring(0, 5));
 					}
+					setEndTimeOptions(modal);
 					modal.find('.technician').val(tech).change();
 					if(typeof na === 'string'){
 						try {
@@ -616,6 +667,11 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 		$(document).on("click", ".update", function () {
 			const issueId = $(this).data("issue");
 			const form = $("#custom2-form-" + issueId);
+
+			if (!form.find(".etime").val()) {
+                alert("Please select an end time.");
+                return;
+            }
 
 			// Collect form data
 			const formData = {
