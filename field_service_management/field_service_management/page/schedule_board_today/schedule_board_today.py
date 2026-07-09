@@ -8,558 +8,672 @@ from frappe.contacts.doctype.address.address import get_address_display
 
 
 
+
+
+
+
 @frappe.whitelist()
 @frappe.whitelist()
 def get_context(context=None):
-   context = context or {}
-   user = frappe.session.user
-
-
-   issues = []
-   lead_issues = []
-   technicians = []
-
-
-   role_profile = frappe.db.get_value("User", user, "role_profile_name")
-   if "BMSCG Admin" in frappe.get_roles(frappe.session.user):
-       issues = frappe.get_all(
-           "Maintenance Visit",
-           filters={"_assign": ""},
-           fields=["name", "subject", "status", "creation", "maintenance_type",
-                    "_assign", "description", "maintenance_description",
-                    "customer_address", "completion_status", "customer"],
-       )
-       lead_issues = frappe.get_all(
-           "Maintenance Visit",
-           filters={"_assign": ["!=", ""]},
-           fields=["name", "subject", "status", "creation", "maintenance_type",
-                    "_assign", "description", "maintenance_description",
-                    "customer_address", "completion_status", "customer"],
-       )
-       technicians = frappe.get_all(
-           "User",
-           filters={"role_profile_name": "Service Technician Role Profile"},
-           fields=["email", "user_image", "full_name"],
-       )
-   if role_profile == "Service Coordinator Profile":
-       territories = frappe.db.get_all(
-           "User Permission",
-           filters={"user": user, "allow": "Territory"},
-           fields=["for_value"]
-       )
-       territory_list = [t["for_value"] for t in territories]
-       issues = frappe.get_all(
-           "Maintenance Visit",
-           filters={"territory": ["in", territory_list], "_assign": ""},
-           fields=["name", "subject", "status", "creation", "maintenance_type",
-                    "_assign", "description", "maintenance_description",
-                    "customer_address", "completion_status", "customer"],
-       )
-       lead_issues = frappe.get_all(
-           "Maintenance Visit",
-           filters={"territory": ["in", territory_list], "_assign": ["!=", ""]},
-           fields=["name", "subject", "status", "creation", "maintenance_type",
-                    "_assign", "description", "maintenance_description",
-                    "customer_address", "completion_status", "customer"],
-       )
-       technicians = frappe.get_all(
-           "User",
-           filters={"role_profile_name": "Service Technician Role Profile"},
-           fields=["email", "user_image", "full_name"],
-       )
-       technician_list = []
-       for tech in technicians:
-           tech_territory = frappe.db.get_value(
-               "User Permission", {"user": tech["email"], "allow": "Territory"}, "for_value"
-           )
-           if tech_territory in territory_list:
-               technician_list.append(tech)
-       technicians = technician_list
-
-
-   def enrich_issue(issue):
-       if issue._assign:
-           try:
-               assign_list = json.loads(issue._assign)
-               issue.assigned = assign_list
-               issue._assign = " | ".join(assign_list)
-           except json.JSONDecodeError:
-               issue._assign = "No one assigned"
-       else:
-           issue._assign = "No one assigned"
-
-
-       geolocation = frappe.get_all('Address', filters={'name': issue.customer_address}, fields=['geolocation'])
-       if geolocation and geolocation[0].geolocation:
-           geo = json.loads(geolocation[0].geolocation)
-           issue.geolocation = json.dumps(geo['features']).replace('"', "'")
-       else:
-           issue.geolocation = None
-
-
-       checklist = frappe.get_all(
-           "Maintenance Visit Checklist", filters={"parent": issue.name},
-           fields=['item_code', 'item_name', 'heading', 'work_done', 'done_by']
-       )
-       checklist_tree = {}
-       for problem in checklist:
-           checklist_tree.setdefault(problem.item_code, []).append(problem)
-       html_content = ""
-       for item_code, products in checklist_tree.items():
-           if products:
-               html_content += f"<p><strong>{item_code}: {products[0].item_name}</strong></p>"
-               for product in products:
-                   checked_attribute = "checked" if product.work_done == "Yes" else ""
-                   html_content += (f"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                                     f"<input type='checkbox' {checked_attribute} disabled> "
-                                     f"&nbsp;&nbsp;&nbsp;&nbsp;{product.heading}<br>")
-               html_content += "</p>"
-       issue.checklist_tree = html_content
+  context = context or {}
+  user = frappe.session.user
+
+
+
+
+  issues = []
+  lead_issues = []
+  technicians = []
+
+
+
+
+  role_profile = frappe.db.get_value("User", user, "role_profile_name")
+  if "BMSCG Admin" in frappe.get_roles(frappe.session.user):
+      issues = frappe.get_all(
+          "Maintenance Visit",
+          filters={"_assign": ""},
+          fields=["name", "subject", "status", "creation", "maintenance_type",
+                   "_assign", "description", "maintenance_description",
+                   "customer_address", "completion_status", "customer"],
+      )
+      lead_issues = frappe.get_all(
+          "Maintenance Visit",
+          filters={"_assign": ["!=", ""]},
+          fields=["name", "subject", "status", "creation", "maintenance_type",
+                   "_assign", "description", "maintenance_description",
+                   "customer_address", "completion_status", "customer"],
+      )
+      technicians = frappe.get_all(
+          "User",
+          filters={"role_profile_name": "Service Technician Role Profile"},
+          fields=["email", "user_image", "full_name"],
+      )
+  if role_profile == "Service Coordinator Profile":
+      territories = frappe.db.get_all(
+          "User Permission",
+          filters={"user": user, "allow": "Territory"},
+          fields=["for_value"]
+      )
+      territory_list = [t["for_value"] for t in territories]
+      issues = frappe.get_all(
+          "Maintenance Visit",
+          filters={"territory": ["in", territory_list], "_assign": ""},
+          fields=["name", "subject", "status", "creation", "maintenance_type",
+                   "_assign", "description", "maintenance_description",
+                   "customer_address", "completion_status", "customer"],
+      )
+      lead_issues = frappe.get_all(
+          "Maintenance Visit",
+          filters={"territory": ["in", territory_list], "_assign": ["!=", ""]},
+          fields=["name", "subject", "status", "creation", "maintenance_type",
+                   "_assign", "description", "maintenance_description",
+                   "customer_address", "completion_status", "customer"],
+      )
+      technicians = frappe.get_all(
+          "User",
+          filters={"role_profile_name": "Service Technician Role Profile"},
+          fields=["email", "user_image", "full_name"],
+      )
+      technician_list = []
+      for tech in technicians:
+          tech_territory = frappe.db.get_value(
+              "User Permission", {"user": tech["email"], "allow": "Territory"}, "for_value"
+          )
+          if tech_territory in territory_list:
+              technician_list.append(tech)
+      technicians = technician_list
 
 
-       issue.products = frappe.get_all(
-           "Maintenance Visit Purpose", filters={"parent": issue.name},
-           fields=['item_code', 'item_name', 'custom_image']
-       )
-       issue.spare_items = frappe.get_all(
-           "Spare Part", filters={"parent": issue.name},
-           fields=['item_code', 'description', 'periodicity', 'uom']
-       )
 
 
-       symptoms = frappe.get_all(
-           "Maintenance Visit Symptoms", filters={"parent": issue.name},
-           fields=['item_code', 'symptom_code', 'resolution', 'image']
-       )
-       symptoms_res = {}
-       for symptom in symptoms:
-           symptoms_res.setdefault(symptom.item_code, []).append(symptom)
-       html_content = ""
-       for item_code, resolutions in symptoms_res.items():
-           if resolutions:
-               html_content += f"<p><strong>{item_code}:</strong></p>"
-               for resolution in resolutions:
-                   html_content += (f"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                                     f"<img src='{resolution.image}' style='max-width: 100px;'> --> "
-                                     f"<strong>{resolution.symptom_code}</strong> --> {resolution.resolution}<br>")
-               html_content += "</p>"
-       issue.symptoms_res = html_content
-
-
-   for issue in issues:
-       enrich_issue(issue)
-   for issue in lead_issues:
-       enrich_issue(issue)
-
-
-   context["issues"] = issues
-   context["lead_issues"] = lead_issues
-
-
-   date = datetime.now().date()
-
-
-   # Same half-hour grid as the Next 7 Days board (READ-ONLY from here on).
-   BASE_TIME_SLOTS = []
-   for h in range(9, 21):
-       BASE_TIME_SLOTS.append({"label": f"{h:02d}", "time": timedelta(hours=h), "is_hour": True})
-       if h != 20:
-           BASE_TIME_SLOTS.append({"label": "", "time": timedelta(hours=h, minutes=30), "is_hour": False})
-
-
-   slot_width_percent = 100 / len(BASE_TIME_SLOTS)
-
+  def enrich_issue(issue):
+      if issue._assign:
+          try:
+              assign_list = json.loads(issue._assign)
+              issue.assigned = assign_list
+              issue._assign = " | ".join(assign_list)
+          except json.JSONDecodeError:
+              issue._assign = "No one assigned"
+      else:
+          issue._assign = "No one assigned"
 
-   assigned_tasks_today = frappe.get_all(
-       "Assigned Tasks",
-       filters={"date": date},
-       fields=["issue_code", "stime", "etime", "technician"],
-   )
-
-
-   def get_not_available(slot_time):
-       return [t.technician for t in assigned_tasks_today if t.stime <= slot_time < t.etime]
-
-
-   maintenance_doc_cache = {}
-   def get_maintenance_doc(issue_code):
-       if issue_code not in maintenance_doc_cache:
-           maintenance_doc_cache[issue_code] = frappe.get_doc("Maintenance Visit", issue_code)
-       return maintenance_doc_cache[issue_code]
 
 
-   LUNCH_START = timedelta(hours=12)
-   LUNCH_END = timedelta(hours=13)
-
-
-   for tech in technicians:
-       html_content = ""
-       tasks = frappe.get_all(
-           "Assigned Tasks",
-           filters={"date": date, "technician": tech.email},
-           fields=["issue_code", "stime", "etime"],
-           order_by="stime"
-       )
-       for task in tasks:
-           time_diff = task.etime - task.stime
-           task.duration_in_hours = time_diff.total_seconds() / 3600
-           task.flag = 0
-       tech.tasks = tasks
-
-
-       total_hours = 0
-
-
-       employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
-       leaves = []
-       if employee:
-           leaves = frappe.db.sql(
-               """
-               SELECT description, half_day, from_date, to_date, select_half_day
-               FROM `tabLeave Application`
-               WHERE employee = %(employee)s AND status = 'Approved'
-                 AND from_date <= %(date)s AND to_date >= %(date)s;
-               """,
-               {"employee": employee, "date": date}, as_dict=True,
-           )
-
-
-       full_day_leave = None
-       morning_leave = None
-       afternoon_leave = None
-       for leave in leaves:
-           if leave.half_day == 1:
-               if leave.select_half_day == 'Morning':
-                   morning_leave = leave
-               else:
-                   afternoon_leave = leave
-           else:
-               full_day_leave = leave
-
-
-       if full_day_leave:
-           leave_text = full_day_leave.description or "Leave"
-           html_content += (f'<div style="width: 100%; border-right: 1px solid #fff; color: white; '
-                             f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
-                             f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
-                             f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
-                             f'{leave_text}</div>')
-           tech.html_content = html_content
-           tech.total_hours = 0
-           continue
-
-
-       if morning_leave:
-           leave_text = morning_leave.description or "Leave"
-           html_content += (f'<div style="width: {slot_width_percent * 6}%; border-right: 1px solid #fff; color: white; '
-                             f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
-                             f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
-                             f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
-                             f'{leave_text}</div>')
-
-
-       i = 0
-       while i < len(BASE_TIME_SLOTS):
-           slot = BASE_TIME_SLOTS[i]
-           slot_time = slot['time']
-
-
-           if morning_leave and slot_time < LUNCH_START:
-               i += 1
-               continue
-
-
-           if slot_time == LUNCH_START:
-               lunch_slots = int((LUNCH_END - LUNCH_START).total_seconds() // 1800)
-               lunch_width = lunch_slots * slot_width_percent
-               html_content += (f'<div style="width: {lunch_width}%; border-right: 1px solid #fff; color: white; '
-                                 f'background-color: #f59e0b; border-radius: 4px; overflow: hidden; '
-                                 f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
-                                 f'data-time="{slot_time}" data-tech="{tech.email}" class="px-1" '
-                                 f'title="Lunch Break">Lunch</div>')
-               i += lunch_slots
-               continue
-
-
-           if LUNCH_START < slot_time < LUNCH_END:
-               i += 1
-               continue
-
-
-           if afternoon_leave and slot_time >= LUNCH_END:
-               leave_text = afternoon_leave.description or "Leave"
-               html_content += (f'<div style="width: {slot_width_percent * 15}%; border-right: 1px solid #fff; color: white; '
-                                 f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
-                                 f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
-                                 f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
-                                 f'{leave_text}</div>')
-               break
-
-
-           task_in_slot = None
-           for task in tasks:
-               if task.flag == 0 and task.stime <= slot_time < task.etime:
-                   task_in_slot = task
-                   task.flag = 1
-                   break
-
-
-           if task_in_slot:
-               maintenance = get_maintenance_doc(task_in_slot['issue_code'])
-               total_hours += task_in_slot['duration_in_hours']
-               html_content += f"""
-               <div style="width: {task_in_slot['duration_in_hours'] * 2 * slot_width_percent}%; background-color: #ef4444; border-right: 1px solid #fff; border-radius: 4px; overflow: hidden;" class="px-1 py-2 text-white text-center drag" data-type="type2" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}" title="{task_in_slot['issue_code']}">
-                   <a href="javascript:void(0)"
-                       class="text-white" data-id="taskModaltask-{task_in_slot['issue_code']}" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{task_in_slot['issue_code']}</a>
-               </div>
-               """
-               html_content += f"""
-               <div class="modal hide" id="taskModaltask-{task_in_slot['issue_code']}" tabindex="-1" role="dialog"
-                   aria-labelledby="taskModalLabel{task_in_slot['issue_code']}" aria-hidden="true">
-                   <div class="modal-dialog" role="document" style="max-width: 80%; margin: 1.75rem auto">
-                       <div class="modal-content">
-                           <div class="modal-header">
-                               <h5 class="modal-title" id="taskModalLabel{task_in_slot['issue_code']}">{task_in_slot['issue_code']}</h5>
-                               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                   <span aria-hidden="true">&times;</span>
-                               </button>
-                           </div>
-                           <div class="modal-body">
-                               <form id="custom2-form-{task_in_slot['issue_code']}" class="custom-form" method="POST">
-                                   <label for="code">Maintenance Visit Code:</label>
-                                   <input class="form-control code clickable-code" type="text" name="code" value="{task_in_slot['issue_code']}" required
-                                       readonly style="cursor: pointer;" onclick="window.open('/app/maintenance-visit/{task_in_slot['issue_code']}', '_blank')"><br><br>
-                                   <label for="technician">Select Co-Technicians (<span class="text-danger">only if more than one technician required</span>):</label><br>
-                                   <select class="form-select technician" style="width:100%" name="technician[]" multiple="multiple" required>"""
-               for item in technicians:
-                   selected = 'selected' if maintenance._assign and item.email in maintenance._assign else ''
-                   html_content += f'<option value="{item.email}" {selected}>{item.email}</option>'
-               html_content += """ </select><br><br>
-                                   <label for="date">Date:</label>
-                                   <input class="form-control date" type="date" name="date" value="{date}" required><br><br>
-                                   <label for="stime">Start Time</label>
-                                   <input class="form-control stime" type="time" name="stime" value="{stime}" required readonly><br><br>
-                                   <label for="etime">End Time:</label>
-                                   <input class="form-control etime" type="time" name="etime" value="{etime}" required readonly step="1800">
-                                   <small><span class="text-danger etime-error"></span></small><br><br>
-                                   <button type="button" class="update btn btn-success"
-                                       data-issue="{issue_code}">Update</button>
-                               </form>
-                           </div>
-                       </div>
-                   </div>
-               </div>""".format(issue_code=task_in_slot['issue_code'], date=date,
-                                 stime=task_in_slot['stime'], etime=task_in_slot['etime'])
-
-
-               end_time = task_in_slot['etime']
-               while i < len(BASE_TIME_SLOTS) and BASE_TIME_SLOTS[i]['time'] < end_time:
-                   i += 1
-               continue
-
-
-           not_available = get_not_available(slot_time)
-           html_content += (f'<div style="width: {slot_width_percent}%; border-right: 1px solid #bae6fd; '
-                             f'background-color: #e0f2fe; min-height: 40px;" data-time="{slot_time}" '
-                             f'data-date="{date}" data-tech="{tech.email}" data-na="{not_available}" '
-                             f'class="px-1 drop-zone" title="Available">&nbsp;</div>')
-           i += 1
-
-
-       tech.html_content = html_content
-       tech.total_hours = round(total_hours / 11 * 100, 2)
-
-
-   context["technicians"] = technicians
-   context["slots"] = BASE_TIME_SLOTS
-   context["message"] = "Welcome to your schedule board!"
-   return context
+
+      geolocation = frappe.get_all('Address', filters={'name': issue.customer_address}, fields=['geolocation'])
+      if geolocation and geolocation[0].geolocation:
+          geo = json.loads(geolocation[0].geolocation)
+          issue.geolocation = json.dumps(geo['features']).replace('"', "'")
+      else:
+          issue.geolocation = None
+
+
+
+
+      checklist = frappe.get_all(
+          "Maintenance Visit Checklist", filters={"parent": issue.name},
+          fields=['item_code', 'item_name', 'heading', 'work_done', 'done_by']
+      )
+      checklist_tree = {}
+      for problem in checklist:
+          checklist_tree.setdefault(problem.item_code, []).append(problem)
+      html_content = ""
+      for item_code, products in checklist_tree.items():
+          if products:
+              html_content += f"<p><strong>{item_code}: {products[0].item_name}</strong></p>"
+              for product in products:
+                  checked_attribute = "checked" if product.work_done == "Yes" else ""
+                  html_content += (f"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                                    f"<input type='checkbox' {checked_attribute} disabled> "
+                                    f"&nbsp;&nbsp;&nbsp;&nbsp;{product.heading}<br>")
+              html_content += "</p>"
+      issue.checklist_tree = html_content
+
+
+
+
+      issue.products = frappe.get_all(
+          "Maintenance Visit Purpose", filters={"parent": issue.name},
+          fields=['item_code', 'item_name', 'custom_image']
+      )
+      issue.spare_items = frappe.get_all(
+          "Spare Part", filters={"parent": issue.name},
+          fields=['item_code', 'description', 'periodicity', 'uom']
+      )
+
+
+
+
+      symptoms = frappe.get_all(
+          "Maintenance Visit Symptoms", filters={"parent": issue.name},
+          fields=['item_code', 'symptom_code', 'resolution', 'image']
+      )
+      symptoms_res = {}
+      for symptom in symptoms:
+          symptoms_res.setdefault(symptom.item_code, []).append(symptom)
+      html_content = ""
+      for item_code, resolutions in symptoms_res.items():
+          if resolutions:
+              html_content += f"<p><strong>{item_code}:</strong></p>"
+              for resolution in resolutions:
+                  html_content += (f"<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                                    f"<img src='{resolution.image}' style='max-width: 100px;'> --> "
+                                    f"<strong>{resolution.symptom_code}</strong> --> {resolution.resolution}<br>")
+              html_content += "</p>"
+      issue.symptoms_res = html_content
+
+
+
+
+  for issue in issues:
+      enrich_issue(issue)
+  for issue in lead_issues:
+      enrich_issue(issue)
+
+
+
+
+  context["issues"] = issues
+  context["lead_issues"] = lead_issues
+
+
+
+
+  date = datetime.now().date()
+
+
+
+
+  # Same half-hour grid as the Next 7 Days board (READ-ONLY from here on).
+  BASE_TIME_SLOTS = []
+  for h in range(9, 21):
+      BASE_TIME_SLOTS.append({"label": f"{h:02d}", "display_label": f"{h:02d}", "time": timedelta(hours=h), "is_hour": True})
+      if h != 20:
+          BASE_TIME_SLOTS.append({"label": "", "display_label": "", "time": timedelta(hours=h, minutes=30), "is_hour": False})
+
+
+
+
+  slot_width_percent = 100 / len(BASE_TIME_SLOTS)
+
+
+
+
+  assigned_tasks_today = frappe.get_all(
+      "Assigned Tasks",
+      filters={"date": date},
+      fields=["issue_code", "stime", "etime", "technician"],
+  )
+
+
+
+
+  def get_not_available(slot_time):
+      return [t.technician for t in assigned_tasks_today if t.stime <= slot_time < t.etime]
+
+
+
+
+  maintenance_doc_cache = {}
+  def get_maintenance_doc(issue_code):
+      if issue_code not in maintenance_doc_cache:
+          maintenance_doc_cache[issue_code] = frappe.get_doc("Maintenance Visit", issue_code)
+      return maintenance_doc_cache[issue_code]
+
+
+
+
+  LUNCH_START = timedelta(hours=12)
+  LUNCH_END = timedelta(hours=13)
+
+
+
+
+  for tech in technicians:
+      html_content = ""
+      tasks = frappe.get_all(
+          "Assigned Tasks",
+          filters={"date": date, "technician": tech.email},
+          fields=["issue_code", "stime", "etime"],
+          order_by="stime"
+      )
+      for task in tasks:
+          time_diff = task.etime - task.stime
+          task.duration_in_hours = time_diff.total_seconds() / 3600
+          task.flag = 0
+      tech.tasks = tasks
+
+
+
+
+      total_hours = 0
+
+
+
+
+      employee = frappe.db.get_value("Employee", {"prefered_email": tech.email}, "employee")
+      leaves = []
+      if employee:
+          leaves = frappe.db.sql(
+              """
+              SELECT description, half_day, from_date, to_date, select_half_day
+              FROM `tabLeave Application`
+              WHERE employee = %(employee)s AND status = 'Approved'
+                AND from_date <= %(date)s AND to_date >= %(date)s;
+              """,
+              {"employee": employee, "date": date}, as_dict=True,
+          )
+
+
+
+
+      full_day_leave = None
+      morning_leave = None
+      afternoon_leave = None
+      for leave in leaves:
+          if leave.half_day == 1:
+              if leave.select_half_day == 'Morning':
+                  morning_leave = leave
+              else:
+                  afternoon_leave = leave
+          else:
+              full_day_leave = leave
+
+
+
+
+      if full_day_leave:
+          leave_text = full_day_leave.description or "Leave"
+          html_content += (f'<div style="width: 100%; border-right: 1px solid #fff; color: white; '
+                            f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                            f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
+                            f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
+                            f'{leave_text}</div>')
+          tech.html_content = html_content
+          tech.total_hours = 0
+          continue
+
+
+
+
+      if morning_leave:
+          leave_text = morning_leave.description or "Leave"
+          html_content += (f'<div style="width: {slot_width_percent * 6}%; border-right: 1px solid #fff; color: white; '
+                            f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                            f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
+                            f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
+                            f'{leave_text}</div>')
+
+
+
+
+      i = 0
+      while i < len(BASE_TIME_SLOTS):
+          slot = BASE_TIME_SLOTS[i]
+          slot_time = slot['time']
+
+
+
+
+          if morning_leave and slot_time < LUNCH_START:
+              i += 1
+              continue
+
+
+
+
+          if slot_time == LUNCH_START:
+              lunch_slots = int((LUNCH_END - LUNCH_START).total_seconds() // 1800)
+              lunch_width = lunch_slots * slot_width_percent
+              html_content += (f'<div style="width: {lunch_width}%; border-right: 1px solid #fff; color: white; '
+                                f'background-color: #f59e0b; border-radius: 4px; overflow: hidden; '
+                                f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
+                                f'data-time="{slot_time}" data-tech="{tech.email}" class="px-1" '
+                                f'title="Lunch Break">Lunch</div>')
+              i += lunch_slots
+              continue
+
+
+
+
+          if LUNCH_START < slot_time < LUNCH_END:
+              i += 1
+              continue
+
+
+
+
+          if afternoon_leave and slot_time >= LUNCH_END:
+              leave_text = afternoon_leave.description or "Leave"
+              html_content += (f'<div style="width: {slot_width_percent * 15}%; border-right: 1px solid #fff; color: white; '
+                                f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                                f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
+                                f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
+                                f'{leave_text}</div>')
+              break
+
+
+
+
+          task_in_slot = None
+          for task in tasks:
+              if task.flag == 0 and task.stime <= slot_time < task.etime:
+                  task_in_slot = task
+                  task.flag = 1
+                  break
+
+
+
+
+          if task_in_slot:
+              maintenance = get_maintenance_doc(task_in_slot['issue_code'])
+              total_hours += task_in_slot['duration_in_hours']
+              html_content += f"""
+              <div style="width: {task_in_slot['duration_in_hours'] * 2 * slot_width_percent}%; background-color: #ef4444; border-right: 1px solid #fff; border-radius: 4px; overflow: hidden;" class="px-1 py-2 text-white text-center drag" data-type="type2" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}" title="{task_in_slot['issue_code']}">
+                  <a href="javascript:void(0)"
+                      class="text-white" data-id="taskModaltask-{task_in_slot['issue_code']}" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{task_in_slot['issue_code']}</a>
+              </div>
+              """
+              html_content += f"""
+              <div class="modal hide" id="taskModaltask-{task_in_slot['issue_code']}" tabindex="-1" role="dialog"
+                  aria-labelledby="taskModalLabel{task_in_slot['issue_code']}" aria-hidden="true">
+                  <div class="modal-dialog" role="document" style="max-width: 80%; margin: 1.75rem auto">
+                      <div class="modal-content">
+                          <div class="modal-header">
+                              <h5 class="modal-title" id="taskModalLabel{task_in_slot['issue_code']}">{task_in_slot['issue_code']}</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                              </button>
+                          </div>
+                          <div class="modal-body">
+                              <form id="custom2-form-{task_in_slot['issue_code']}" class="custom-form" method="POST">
+                                  <label for="code">Maintenance Visit Code:</label>
+                                  <input class="form-control code clickable-code" type="text" name="code" value="{task_in_slot['issue_code']}" required
+                                      readonly style="cursor: pointer;" onclick="window.open('/app/maintenance-visit/{task_in_slot['issue_code']}', '_blank')"><br><br>
+                                  <label for="technician">Select Co-Technicians (<span class="text-danger">only if more than one technician required</span>):</label><br>
+                                  <select class="form-select technician" style="width:100%" name="technician[]" multiple="multiple" required>"""
+              for item in technicians:
+                  selected = 'selected' if maintenance._assign and item.email in maintenance._assign else ''
+                  html_content += f'<option value="{item.email}" {selected}>{item.email}</option>'
+              html_content += """ </select><br><br>
+                                  <label for="date">Date:</label>
+                                  <input class="form-control date" type="date" name="date" value="{date}" required><br><br>
+                                  <label for="stime">Start Time</label>
+                                  <input class="form-control stime" type="time" name="stime" value="{stime}" required readonly><br><br>
+                                  <label for="etime">End Time:</label>
+                                  <input class="form-control etime" type="time" name="etime" value="{etime}" required readonly step="1800">
+                                  <small><span class="text-danger etime-error"></span></small><br><br>
+                                  <button type="button" class="update btn btn-success"
+                                      data-issue="{issue_code}">Update</button>
+                              </form>
+                          </div>
+                      </div>
+                  </div>
+              </div>""".format(issue_code=task_in_slot['issue_code'], date=date,
+                                stime=task_in_slot['stime'], etime=task_in_slot['etime'])
+
+
+
+
+              end_time = task_in_slot['etime']
+              while i < len(BASE_TIME_SLOTS) and BASE_TIME_SLOTS[i]['time'] < end_time:
+                  i += 1
+              continue
+
+
+
+
+          not_available = get_not_available(slot_time)
+          html_content += (f'<div style="width: {slot_width_percent}%; border-right: 1px solid #bae6fd; '
+                            f'background-color: #e0f2fe; min-height: 40px;" data-time="{slot_time}" '
+                            f'data-date="{date}" data-tech="{tech.email}" data-na="{not_available}" '
+                            f'class="px-1 drop-zone" title="Available">&nbsp;</div>')
+          i += 1
+
+
+
+
+      tech.html_content = html_content
+      tech.total_hours = round(total_hours / 11 * 100, 2)
+
+
+
+
+  context["technicians"] = technicians
+  context["slots"] = BASE_TIME_SLOTS
+  context["message"] = "Welcome to your schedule board!"
+  return context
+
+
+
+
 
 
 
 
 @frappe.whitelist()
 def save_form_data(form_data):
-   # Parse the form_data from the request
-   try:
-       form_data = json.loads(form_data)
-       technicians = form_data["technicians"]
-       code = form_data["code"]
-       date = form_data["date"]
-       etime = form_data["etime"]
-       stime = form_data["stime"]
-       ehours, eminutes = map(int, etime.split(":"))
-       etime = timedelta(hours=ehours, minutes=eminutes)
-       shours, sminutes = map(int, stime.split(":"))
-       stime = timedelta(hours=shours, minutes=sminutes)
-       if eminutes % 30 != 0:
-           frappe.throw("Please select a time that is a multiple of 30 minutes.")
-       if stime >= etime:
-           frappe.throw("Please select a time that is greater than the start time.")
-       for tech in technicians:
-           assigned_tasks = frappe.get_all(
-               "Assigned Tasks",
-               filters={"technician": tech, "date": date},
-               fields=["issue_code", "stime", "etime"],
-           )
-           for task in assigned_tasks:
-               if (
-                   (stime > task.stime and stime < task.etime)
-                   or (etime > task.stime and etime < task.etime)
-                   or (task.stime > stime and task.stime < etime)
-               ):
-                   return {
-                       "error": "error",
-                       "message": f"Time Slot Clash for technician: {tech}",
-                   }
+  # Parse the form_data from the request
+  try:
+      form_data = json.loads(form_data)
+      technicians = form_data["technicians"]
+      code = form_data["code"]
+      date = form_data["date"]
+      etime = form_data["etime"]
+      stime = form_data["stime"]
+      ehours, eminutes = map(int, etime.split(":"))
+      etime = timedelta(hours=ehours, minutes=eminutes)
+      shours, sminutes = map(int, stime.split(":"))
+      stime = timedelta(hours=shours, minutes=sminutes)
+      if eminutes % 30 != 0:
+          frappe.throw("Please select a time that is a multiple of 30 minutes.")
+      if stime >= etime:
+          frappe.throw("Please select a time that is greater than the start time.")
+      for tech in technicians:
+          assigned_tasks = frappe.get_all(
+              "Assigned Tasks",
+              filters={"technician": tech, "date": date},
+              fields=["issue_code", "stime", "etime"],
+          )
+          for task in assigned_tasks:
+              if (
+                  (stime > task.stime and stime < task.etime)
+                  or (etime > task.stime and etime < task.etime)
+                  or (task.stime > stime and task.stime < etime)
+              ):
+                  return {
+                      "error": "error",
+                      "message": f"Time Slot Clash for technician: {tech}",
+                  }
 
 
-       for tech in technicians:
 
 
-           new_doc = frappe.get_doc(
-               {
-                   "doctype": "Assigned Tasks",
-                   "issue_code": code,
-                   "technician": tech,
-                   "date": date,
-                   "etime": etime,
-                   "stime": stime,
-               }
-           )
-           new_doc.insert()
+      for tech in technicians:
 
 
-       # Optionally, you can update the Issue doctype as well
-       issue_doc = frappe.get_doc("Maintenance Visit", code)
-       if issue_doc:
-           existing_techs = json.loads(issue_doc._assign) if issue_doc._assign else []
-           for tech in technicians:
-               if tech not in existing_techs:
-                   existing_techs.append(tech)
-           issue_doc._assign = json.dumps(existing_techs)
-           issue_doc.visit_count = int(issue_doc.visit_count or 0) + 1
-           issue_doc.mntc_date = date
-           frappe.db.sql(
-               """
-               UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s, `mntc_date` = %s WHERE name = %s
-           """,
-               (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, date, code),
-           )
 
 
-           frappe.db.commit()
-       return {"success": "success"}
-   except Exception as e:
-       return {"error": "error", "message": str(e)}
+          new_doc = frappe.get_doc(
+              {
+                  "doctype": "Assigned Tasks",
+                  "issue_code": code,
+                  "technician": tech,
+                  "date": date,
+                  "etime": etime,
+                  "stime": stime,
+              }
+          )
+          new_doc.insert()
+
+
+
+
+      # Optionally, you can update the Issue doctype as well
+      issue_doc = frappe.get_doc("Maintenance Visit", code)
+      if issue_doc:
+          existing_techs = json.loads(issue_doc._assign) if issue_doc._assign else []
+          for tech in technicians:
+              if tech not in existing_techs:
+                  existing_techs.append(tech)
+          issue_doc._assign = json.dumps(existing_techs)
+          issue_doc.visit_count = int(issue_doc.visit_count or 0) + 1
+          issue_doc.mntc_date = date
+          frappe.db.sql(
+              """
+              UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s, `mntc_date` = %s WHERE name = %s
+          """,
+              (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, date, code),
+          )
+
+
+
+
+          frappe.db.commit()
+      return {"success": "success"}
+  except Exception as e:
+      return {"error": "error", "message": str(e)}
+
+
+
+
 
 
 
 
 @frappe.whitelist()
 def update_form_data(form_data):
-   # # Parse the form_data from the request
-   # pass
-   try:
-       form_data = json.loads(form_data)
-       technicians = form_data["technicians"]
-       code = form_data["code"]
-       date = form_data["date"]
-       etime = form_data["etime"]
-       stime = form_data["stime"]
-       if(len(etime) > 5):
-           hours, minutes, seconds = map(int, etime.split(":"))
-       else:
-           hours, minutes = map(int, etime.split(":"))
-       etime = timedelta(hours=hours, minutes=minutes)
-       if(len(stime) > 5):
-           hours, minutes, seconds = map(int, stime.split(":"))
-       else:
-           hours, minutes = map(int, stime.split(":"))
-
-
-       stime = timedelta(hours=hours, minutes=minutes)
+  # # Parse the form_data from the request
+  # pass
+  try:
+      form_data = json.loads(form_data)
+      technicians = form_data["technicians"]
+      code = form_data["code"]
+      date = form_data["date"]
+      etime = form_data["etime"]
+      stime = form_data["stime"]
+      if(len(etime) > 5):
+          hours, minutes, seconds = map(int, etime.split(":"))
+      else:
+          hours, minutes = map(int, etime.split(":"))
+      etime = timedelta(hours=hours, minutes=minutes)
+      if(len(stime) > 5):
+          hours, minutes, seconds = map(int, stime.split(":"))
+      else:
+          hours, minutes = map(int, stime.split(":"))
 
 
 
 
-       tasks = frappe.get_all("Assigned Tasks", filters={"issue_code": code}, fields=["name"])
-
-
-       if tasks:
-           for task in tasks:
-               frappe.delete_doc("Assigned Tasks", task.name, force=True)
-           frappe.db.commit()
+      stime = timedelta(hours=hours, minutes=minutes)
 
 
 
 
 
 
-       for tech in technicians:
-           assigned_tasks = frappe.get_all(
-               "Assigned Tasks",
-               filters={"technician": tech, "date": date},
-               fields=["issue_code", "stime", "etime"],
-           )
-           for task in assigned_tasks:
-               if (
-                   (stime > task.stime and stime < task.etime)
-                   or (etime > task.stime and etime < task.etime)
-                   or (task.stime > stime and task.stime < etime)
-               ):
-                   return {
-                       "error": "error",
-                       "message": f"Time Slot Clash for technician: {tech}",
-                   }
 
 
-       for tech in technicians:
+      tasks = frappe.get_all("Assigned Tasks", filters={"issue_code": code}, fields=["name"])
 
 
-           new_doc = frappe.get_doc(
-               {
-                   "doctype": "Assigned Tasks",
-                   "issue_code": code,
-                   "technician": tech,
-                   "date": date,
-                   "etime": etime,
-                   "stime": stime,
-               }
-           )
-           new_doc.insert()
 
 
-       # Optionally, you can update the Issue doctype as well
-       issue_doc = frappe.get_doc("Maintenance Visit", code)
-       if issue_doc:
-           existing_techs = []
-           for tech in technicians:
-               if tech not in existing_techs:
-                   existing_techs.append(tech)
-           if existing_techs:
-               issue_doc._assign = json.dumps(existing_techs)
-               issue_doc.mntc_date = date
-               frappe.db.sql(
-                   """
-                   UPDATE `tabMaintenance Visit` SET `_assign` = %s, `mntc_date` = %s WHERE name = %s
-                   """,
-                   (json.dumps(existing_techs), date, code),
-               )
-           else:
-               issue_doc._assign = ""
-               frappe.db.sql(
-               """
-                   UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = `visit_count` - 1 WHERE name = %s
-               """,
-                   ("", 'Unscheduled', code),
-               )
+      if tasks:
+          for task in tasks:
+              frappe.delete_doc("Assigned Tasks", task.name, force=True)
+          frappe.db.commit()
 
 
-           frappe.db.commit()
-       return {"success": "success"}
-   except Exception as e:
-       return {"error": "error", "message": str(e)}
+
+
+
+
+
+
+
+
+
+
+      for tech in technicians:
+          assigned_tasks = frappe.get_all(
+              "Assigned Tasks",
+              filters={"technician": tech, "date": date},
+              fields=["issue_code", "stime", "etime"],
+          )
+          for task in assigned_tasks:
+              if (
+                  (stime > task.stime and stime < task.etime)
+                  or (etime > task.stime and etime < task.etime)
+                  or (task.stime > stime and task.stime < etime)
+              ):
+                  return {
+                      "error": "error",
+                      "message": f"Time Slot Clash for technician: {tech}",
+                  }
+
+
+
+
+      for tech in technicians:
+
+
+
+
+          new_doc = frappe.get_doc(
+              {
+                  "doctype": "Assigned Tasks",
+                  "issue_code": code,
+                  "technician": tech,
+                  "date": date,
+                  "etime": etime,
+                  "stime": stime,
+              }
+          )
+          new_doc.insert()
+
+
+
+
+      # Optionally, you can update the Issue doctype as well
+      issue_doc = frappe.get_doc("Maintenance Visit", code)
+      if issue_doc:
+          existing_techs = []
+          for tech in technicians:
+              if tech not in existing_techs:
+                  existing_techs.append(tech)
+          if existing_techs:
+              issue_doc._assign = json.dumps(existing_techs)
+              issue_doc.mntc_date = date
+              frappe.db.sql(
+                  """
+                  UPDATE `tabMaintenance Visit` SET `_assign` = %s, `mntc_date` = %s WHERE name = %s
+                  """,
+                  (json.dumps(existing_techs), date, code),
+              )
+          else:
+              issue_doc._assign = ""
+              frappe.db.sql(
+              """
+                  UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = `visit_count` - 1 WHERE name = %s
+              """,
+                  ("", 'Unscheduled', code),
+              )
+
+
+
+
+          frappe.db.commit()
+      return {"success": "success"}
+  except Exception as e:
+      return {"error": "error", "message": str(e)}
+
+
+
+
+
+
 
 
 
