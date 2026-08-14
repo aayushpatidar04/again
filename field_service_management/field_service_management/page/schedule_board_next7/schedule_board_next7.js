@@ -519,7 +519,8 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 			$(document).on('dragleave', '.drop-zone', function () {
 				const dropZone = $(this);
 				dropZone.removeClass('drop-hover');
-				dropZone.css('background-color', '#78D6FF');
+				// dropZone.css('background-color', '#78D6FF');
+				dropZone.css('background-color', '#e0f2fe');
 			});
 		
 			$(document).on('drop', '.drop-zone', function (event) {
@@ -532,7 +533,8 @@ frappe.pages['schedule-board-next7'].on_page_load = function(wrapper) {
 				const card = $(`#${cardId}`);
 				const slotDate = dropZone.data('date');
 				dropZone.removeClass('drop-hover');
-				dropZone.css('background-color', '#78D6FF');
+				// dropZone.css('background-color', '#78D6FF');
+				dropZone.css('background-color', '#e0f2fe');
 		
 				if (card.data('type') === 'type1') {
 					openModal(cardId, slotTime, tech, not_available, slotDate);

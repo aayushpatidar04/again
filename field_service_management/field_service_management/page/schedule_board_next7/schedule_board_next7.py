@@ -434,8 +434,8 @@ def get_context(context=None):
 
 
               not_available = get_not_available(date, slot_time)
-              html_content += (f'<div style="width: 12.5px; border-right: 1px solid #000; '
-                                f'background-color: #78D6FF; min-height: 40px;" data-time="{slot_time}" '
+              html_content += (f'<div style="width: 12.5px; border-right: 1px solid #bae6fd;'
+                                f'background-color: #e0f2fe; min-height: 40px;" data-time="{slot_time}" '
                                 f'data-date="{date}" data-tech="{tech.email}" data-na="{not_available}" '
                                 f'class="px-1 drop-zone">-</div>')
               i += 1

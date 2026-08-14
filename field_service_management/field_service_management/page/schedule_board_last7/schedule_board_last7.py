@@ -272,7 +272,8 @@ def get_context(context=None):
            for slot in time_slots:
                if count == -0.5:
                    ttt = slot['time'] - timedelta(minutes=30)
-                   html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" class="px-1">-</div>'
+                #    html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; background-color: #78D6FF; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" class="px-1">-</div>'
+                   html_content += f'<div style="width: 12.5px; border-right: 1px solid #bae6fd; background-color: #e0f2fe; border: 2px dashed #ccc; min-height: 40px;" data-time="{ttt}" data-tech="{tech.email}" class="px-1">-</div>'
                    count += 0.5
                if slot['label'] == '01' and afternoon == 1:
                    count += 8
@@ -362,10 +363,12 @@ def get_context(context=None):
                        count += task_in_slot["duration_in_hours"] - 1
                    else:
                        if count == 0:
-                           html_content += f'<div style="width: 25px; border-right: 1px solid #000; background-color: #78D6FF;" data-time="{slot["time"]}" data-date="{date}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                        #    html_content += f'<div style="width: 25px; border-right: 1px solid #000; background-color: #78D6FF;" data-time="{slot["time"]}" data-date="{date}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                            html_content += f'<div style="width: 25px; border-right: 1px solid #bae6fd; background-color: #e0f2fe;" data-time="{slot["time"]}" data-date="{date}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
                        elif count % 1 == 0.5:
                            slot['time'] += timedelta(minutes=30)
-                           html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; background-color: #78D6FF;" data-time="{slot["time"]}" data-date="{date}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                        #    html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; background-color: #78D6FF;" data-time="{slot["time"]}" data-date="{date}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
+                           html_content += f'<div style="width: 12.5px; border-right: 1px solid #bae6fd; background-color: #e0f2fe;" data-time="{slot["time"]}" data-date="{date}" data-tech="{tech.email}" data-na="{slot["not_available"]}" class="px-1">-</div>'
                            count -= 0.5
                        else:
                            count -= 1
