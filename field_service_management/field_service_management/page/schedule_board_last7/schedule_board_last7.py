@@ -258,14 +258,14 @@ def get_context(context=None):
                    if (leave.half_day == 1):
                        if (leave.select_half_day == 'Morning'):
                            count = 3
-                           html_content += f'<div style="width: 75px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
+                           html_content += f'<div style="width: 75px; border-right: 1px solid #fff; color: white; background-color: #7c3aed; border-radius: 4px; overflow: hidden;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
                        else:
                            count = 0
                            afternoon = 1
                    else:
                        count = 12
                        afternoon = 0
-                       html_content += f'<div style="width: 300px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
+                       html_content += f'<div style="width: 300px; border-right: 1px solid #fff; color: white; background-color: #7c3aed; border-radius: 4px; overflow: hidden;" data-tech="{tech.email}" class="px-1">{leave.description if leave.description else 'Leave'}</div>'
            else:
                count = 0
                afternoon = 0
@@ -277,15 +277,15 @@ def get_context(context=None):
                    count += 0.5
                if slot['label'] == '01' and afternoon == 1:
                    count += 8
-                   html_content += f'<div style="width: 200px; border-right: 1px solid #000; color: white; background-color: red;" data-tech="{tech.email}" class="px-1">Leave</div>'
+                   html_content += f'<div style="width: 200px; border-right: 1px solid #fff; color: white; background-color: #7c3aed; border-radius: 4px; overflow: hidden;" data-tech="{tech.email}" class="px-1">Leave</div>'
                if slot['label'] == '12':
                    if(count >= 1):
                        count -=1
                    elif(count == 0.5):
-                       html_content += f'<div style="width: 12.5px; border-right: 1px solid #000; color: white; background-color: red;" data-time="{slot["time"]}" data-tech="{tech.email}" class="px-1">Lunch Time</div>'
+                       html_content += f'<div style="width: 12.5px; border-right: 1px solid #fff; color: white; background-color: #f59e0b; border-radius: 4px; overflow: hidden;" data-time="{slot["time"]}" data-tech="{tech.email}" class="px-1">Lunch Time</div>'
                        count -= 0.5
                    else:
-                       html_content += f'<div style="width: 25px; border-right: 1px solid #000; color: white; background-color: red;" data-time="{slot["time"]}" data-tech="{tech.email}" class="px-1">Lunch Time</div>'
+                       html_content += f'<div style="width: 25px; border-right: 1px solid #fff; color: white; background-color: #f59e0b; border-radius: 4px; overflow: hidden;" data-time="{slot["time"]}" data-tech="{tech.email}" class="px-1">Lunch Time</div>'
                else:
                    not_available = []
                    ts = frappe.get_all(
@@ -308,7 +308,7 @@ def get_context(context=None):
                    if task_in_slot:
                        total_hours += task_in_slot['duration_in_hours']
                        html_content += f"""
-                       <div style="width: {task_in_slot['duration_in_hours'] * 25}px; background-color: red; border-right: 1px solid #000;" class="px-1 py-2 text-white text-center drag" data-type="type2" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}">
+                       <div style="width: {task_in_slot['duration_in_hours'] * 25}px; background-color: #ef4444; border-right: 1px solid #fff; border-radius: 4px; overflow: hidden;" class="px-1 py-2 text-white text-center drag" data-type="type2" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}">
                            <a href="javascript:void(0)"
                                class="text-white" data-id="taskModaltask-{task_in_slot['issue_code']}">{task_in_slot['issue_code']}</a>
                        </div>

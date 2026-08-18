@@ -1,7 +1,7 @@
 frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: 'Schedule Board Yesterday',
+		title: 'Schedule Board: Yesterday',
 		single_column: true
 	});
 	const pageKey = 'reload_schedule_board_yeste';
@@ -15,7 +15,7 @@ frappe.pages['schedule-board-yeste'].on_page_load = function(wrapper) {
     }
 	localStorage.removeItem(pageKey);
 
-	page.set_title("Schedule Board Yesterday");
+	page.set_title("Schedule Board: Yesterday");
 	frappe.call({
 		method: "field_service_management.field_service_management.page.schedule_board_yeste.schedule_board_yeste.get_context",
 		callback: function (r) {

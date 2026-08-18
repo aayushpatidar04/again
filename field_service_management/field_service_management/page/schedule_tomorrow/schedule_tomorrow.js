@@ -1,7 +1,7 @@
 frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
    var page = frappe.ui.make_app_page({
        parent: wrapper,
-       title: 'Schedule Board Tomorrow',
+       title: 'Schedule Board: Tomorrow',
        single_column: true
    });
 
@@ -19,7 +19,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function(wrapper) {
    localStorage.removeItem(pageKey);
 
 
-   page.set_title("Schedule Board Tomorrow");
+   page.set_title("Schedule Board: Tomorrow");
    frappe.call({
        method: "field_service_management.field_service_management.page.schedule_tomorrow.schedule_tomorrow.get_context",
        callback: function (r) {

@@ -279,7 +279,7 @@ def get_context(context=None):
        if full_day_leave:
            leave_text = full_day_leave.description or "Leave"
            html_content += (f'<div style="width: 100%; border-right: 1px solid #fff; color: white; '
-                             f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                             f'background-color: #7c3aed; border-radius: 4px; overflow: hidden; '
                              f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                              f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
                              f'{leave_text}</div>')
@@ -291,7 +291,7 @@ def get_context(context=None):
        if morning_leave:
            leave_text = morning_leave.description or "Leave"
            html_content += (f'<div style="width: {slot_width_percent * 6}%; border-right: 1px solid #fff; color: white; '
-                             f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                             f'background-color: #7c3aed; border-radius: 4px; overflow: hidden; '
                              f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                              f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
                              f'{leave_text}</div>')
@@ -328,7 +328,7 @@ def get_context(context=None):
            if afternoon_leave and slot_time >= LUNCH_END:
                leave_text = afternoon_leave.description or "Leave"
                html_content += (f'<div style="width: {slot_width_percent * 15}%; border-right: 1px solid #fff; color: white; '
-                                 f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                                 f'background-color: #7c3aed; border-radius: 4px; overflow: hidden; '
                                  f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                                  f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
                                  f'{leave_text}</div>')
@@ -589,4 +589,3 @@ def update_form_data(form_data):
        return {"success": "success"}
    except Exception as e:
        return {"error": "error", "message": str(e)}
-

@@ -290,8 +290,8 @@ def get_context(context=None):
 
           if full_day_leave:
               leave_text = full_day_leave.description or "Leave"
-              html_content += (f'<div style="width: 300px; border-right: 1px solid #000; color: white; '
-                                f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+              html_content += (f'<div style="width: 300px; border-right: 1px solid #fff; color: white; '
+                                f'background-color: #7c3aed; border-radius: 4px; overflow: hidden; '
                                 f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                                 f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
                                 f'{leave_text}</div>')
@@ -303,8 +303,8 @@ def get_context(context=None):
 
           if morning_leave:
               leave_text = morning_leave.description or "Leave"
-              html_content += (f'<div style="width: 75px; border-right: 1px solid #000; color: white; '
-                                f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+              html_content += (f'<div style="width: 75px; border-right: 1px solid #fff; color: white; '
+                                f'background-color: #7c3aed; border-radius: 4px; overflow: hidden; '
                                 f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                                 f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
                                 f'{leave_text}</div>')
@@ -333,7 +333,7 @@ def get_context(context=None):
                   # by the next sibling's background.
                   lunch_slots = int((LUNCH_END - LUNCH_START).total_seconds() // 1800)
                   lunch_width = lunch_slots * 12.5
-                  html_content += (f'<div style="width: {lunch_width}px; border-right: 1px solid #000; color: white; '
+                  html_content += (f'<div style="width: {lunch_width}px; border-right: 1px solid #fff; color: white; '
                                     f'background-color: #f59e0b; border-radius: 4px; overflow: hidden; '
                                     f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                                     f'data-time="{slot_time}" data-tech="{tech.email}" class="px-1" '
@@ -355,8 +355,8 @@ def get_context(context=None):
 
               if afternoon_leave and slot_time >= LUNCH_END:
                   leave_text = afternoon_leave.description or "Leave"
-                  html_content += (f'<div style="width: 200px; border-right: 1px solid #000; color: white; '
-                                    f'background-color: #dc2626; border-radius: 4px; overflow: hidden; '
+                  html_content += (f'<div style="width: 200px; border-right: 1px solid #fff; color: white; '
+                                    f'background-color: #7c3aed; border-radius: 4px; overflow: hidden; '
                                     f'white-space: nowrap; text-overflow: ellipsis; text-align: center;" '
                                     f'data-tech="{tech.email}" class="px-1" title="{leave_text}">'
                                     f'{leave_text}</div>')
@@ -379,7 +379,7 @@ def get_context(context=None):
                   maintenance = get_maintenance_doc(task_in_slot['issue_code'])
                   total_hours += task_in_slot['duration_in_hours']
                   html_content += f"""
-                  <div style="width: {task_in_slot['duration_in_hours'] * 25}px; background-color: #ef4444; border-right: 1px solid #000; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.25); overflow: hidden;" class="px-1 py-2 text-white text-center drag" data-type="type2" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}" title="{task_in_slot['issue_code']}">
+                  <div style="width: {task_in_slot['duration_in_hours'] * 25}px; background-color: #ef4444; border-right: 1px solid #fff; border-radius: 4px; overflow: hidden;" class="px-1 py-2 text-white text-center drag" data-type="type2" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}" title="{task_in_slot['issue_code']}">
                       <a href="javascript:void(0)"
                           class="text-white" data-id="taskModaltask-{task_in_slot['issue_code']}" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{task_in_slot['issue_code']}</a>
                   </div>
