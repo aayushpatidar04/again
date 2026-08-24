@@ -3,6 +3,7 @@ import jwt
 import frappe
 from frappe import _
 import json
+import hashlib
 from frappe.utils import now
 import math
 from frappe.utils import now_datetime, random_string, get_site_path
@@ -894,17 +895,233 @@ def check_all_sub_steps_complete(visit_doc, parent_checklist_row):
 
 
 
-@frappe.whitelist(allow_guest=True)
-def live_location(lat, lon):
+def _live_location_user():
     authorization_header = frappe.get_request_header("Authorization")
     if not authorization_header:
-        return { "status": "error", "message": "Missing Authorization header"}
-    api_key = frappe.get_request_header("Authorization").split(" ")[1].split(":")[0]
-    # Find the user associated with the API key
-    user = frappe.db.get_value("User", {"api_key": api_key}, "name")
+        return None, {"status": "error", "message": "Missing Authorization header"}
 
+    parts = authorization_header.split(" ", 1)
+    if len(parts) != 2 or ":" not in parts[1]:
+        return None, {"status": "failed", "message": "Invalid Authorization header"}
+
+    api_key = parts[1].split(":", 1)[0]
+    user = frappe.db.get_value("User", {"api_key": api_key}, "name")
     if not user:
-        return {"status": "failed", "message": "Invalid API key"}
+        return None, {"status": "failed", "message": "Invalid API key"}
+    return user, None
+
+
+def _live_location_geojson(latitude, longitude):
+    return json.dumps(
+        {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [longitude, latitude],
+                    },
+                }
+            ],
+        }
+    )
+
+
+def _insert_live_location(user, employee_data, event, device=None):
+    event_id = str(event.get("event_id") or "").strip()
+    if not event_id:
+        raise ValueError("event_id is required")
+
+    latitude = float(event.get("latitude"))
+    longitude = float(event.get("longitude"))
+    if not -90 <= latitude <= 90:
+        raise ValueError("latitude must be between -90 and 90")
+    if not -180 <= longitude <= 180:
+        raise ValueError("longitude must be between -180 and 180")
+
+    captured_at_utc = frappe.utils.get_datetime(event.get("captured_at"))
+    if not captured_at_utc:
+        raise ValueError("captured_at is required")
+    captured_at = frappe.utils.convert_utc_to_system_timezone(
+        captured_at_utc
+    ).replace(tzinfo=None)
+
+    if frappe.db.exists("Live Location", {"event_id": event_id}):
+        return "duplicate"
+
+    device = device if isinstance(device, dict) else {}
+    new_record = frappe.get_doc(
+        {
+            "doctype": "Live Location",
+            "event_id": event_id,
+            "sequence": event.get("sequence"),
+            "installation_id": device.get("installation_id"),
+            "latitude": latitude,
+            "longitude": longitude,
+            "employee": employee_data.get("name"),
+            "employee_name": employee_data.get("employee_name"),
+            "technician": user,
+            "location": _live_location_geojson(latitude, longitude),
+            "time": captured_at,
+            "captured_at": captured_at,
+            "received_at": now_datetime(),
+            "accuracy_m": event.get("accuracy_m"),
+            "altitude_m": event.get("altitude_m"),
+            "speed_mps": event.get("speed_mps"),
+            "heading_deg": event.get("heading_deg"),
+            "is_mocked": 1 if event.get("is_mocked") else 0,
+            "location_source": event.get("source"),
+        }
+    )
+    try:
+        new_record.insert(ignore_permissions=True)
+    except frappe.UniqueValidationError:
+        # Another request may have inserted the same event after our existence
+        # check. Treat that race exactly like any other idempotent duplicate.
+        return "duplicate"
+    return "accepted"
+
+
+def _json_object(value, argument_name):
+    if value is None:
+        return {}
+    if isinstance(value, str):
+        value = json.loads(value)
+    if not isinstance(value, dict):
+        raise ValueError(f"{argument_name} must be a JSON object")
+    return value
+
+
+def _health_datetime(value):
+    if not value:
+        return None
+    try:
+        parsed = frappe.utils.get_datetime(value)
+        return frappe.utils.convert_utc_to_system_timezone(parsed).replace(tzinfo=None)
+    except (TypeError, ValueError):
+        return None
+
+
+def _tracking_health_level(state, legacy=False):
+    if legacy:
+        return "Legacy App"
+    if (
+        not state.get("tracking_enabled")
+        or not state.get("service_running")
+        or not state.get("location_service_enabled")
+        or state.get("permission") != "always"
+    ):
+        return "Blocked"
+    if (
+        not state.get("precise")
+        or not state.get("battery_optimization_disabled")
+        or not state.get("network_connected")
+        or state.get("pending_count")
+        or state.get("last_error_code")
+    ):
+        return "Degraded"
+    return "Healthy"
+
+
+def _upsert_live_location_health(
+    user,
+    employee_data,
+    device=None,
+    tracking_state=None,
+    legacy=False,
+):
+    device = _json_object(device, "device")
+    state = _json_object(tracking_state, "tracking_state")
+    installation_id = str(device.get("installation_id") or "legacy")
+    health_key = hashlib.sha256(
+        f"{user}::{installation_id}".encode("utf-8")
+    ).hexdigest()
+    existing = frappe.db.get_value(
+        "Live Location Device Health", {"health_key": health_key}, "name"
+    )
+    values = {
+        "health_key": health_key,
+        "technician": user,
+        "employee": employee_data.get("name"),
+        "employee_name": employee_data.get("employee_name"),
+        "installation_id": installation_id,
+        "device_model": device.get("device_model"),
+        "platform": device.get("platform"),
+        "android_version": device.get("android_version")
+        or device.get("os_version"),
+        "android_sdk": device.get("android_sdk"),
+        "app_version": device.get("app_version")
+        or ("Legacy" if legacy else None),
+        "last_heartbeat": now_datetime(),
+        "health_status": _tracking_health_level(state, legacy=legacy),
+        "tracking_enabled": state.get("tracking_enabled"),
+        "service_running": state.get("service_running"),
+        "location_service_enabled": state.get("location_service_enabled"),
+        "location_permission": state.get("permission"),
+        "precise_location": state.get("precise"),
+        "battery_unrestricted": state.get("battery_optimization_disabled"),
+        "network_connected": state.get("network_connected"),
+        "erp_reachable": 1,
+        "last_capture_at": now_datetime()
+        if legacy
+        else _health_datetime(state.get("last_capture_at")),
+        "last_app_acknowledgement": _health_datetime(state.get("last_upload_at")),
+        "pending_count": state.get("pending_count") or 0,
+        "last_error_code": state.get("last_error_code"),
+        "last_error_message": state.get("last_error_message"),
+    }
+    health = (
+        frappe.get_doc("Live Location Device Health", existing)
+        if existing
+        else frappe.new_doc("Live Location Device Health")
+    )
+    health.update(values)
+    if health.is_new():
+        try:
+            health.insert(ignore_permissions=True, set_name=health_key)
+        except (frappe.DuplicateEntryError, frappe.UniqueValidationError):
+            # Concurrent heartbeats for one installation converge on the same
+            # deterministic document instead of failing the whole batch.
+            rows = frappe.db.sql(
+                """
+                SELECT name
+                FROM `tabLive Location Device Health`
+                WHERE health_key = %s
+                FOR UPDATE
+                """,
+                (health_key,),
+            )
+            if not rows:
+                raise
+            existing = rows[0][0]
+            frappe.db.set_value(
+                "Live Location Device Health",
+                existing,
+                values,
+                update_modified=True,
+            )
+            health.name = existing
+            health.update(values)
+    else:
+        health.save(ignore_permissions=True)
+    return health
+
+
+@frappe.whitelist(allow_guest=True)
+def live_location(
+    lat=None,
+    lon=None,
+    events=None,
+    device=None,
+    tracking_state=None,
+    **kwargs,
+):
+    """Store legacy single fixes or acknowledge idempotent location batches."""
+    user, error = _live_location_user()
+    if error:
+        return error
 
     employee_data = (
         frappe.db.get_value(
@@ -913,37 +1130,88 @@ def live_location(lat, lon):
         or {}
     )
 
-    location = None
-    if lat and lon:
-        location = json.dumps(
-            {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "properties": {},
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [lon, lat],  # Note: [lng, lat]
-                        },
-                    }
-                ],
-            }
-        )
+    if events is not None:
+        if isinstance(events, str):
+            events = json.loads(events)
+        if isinstance(device, str):
+            device = json.loads(device)
+        if isinstance(tracking_state, str):
+            tracking_state = json.loads(tracking_state)
+        if not isinstance(events, list):
+            frappe.throw(_("events must be a JSON array"), frappe.ValidationError)
+        if len(events) > 100:
+            frappe.throw(_("A maximum of 100 location events is allowed"), frappe.ValidationError)
 
+        accepted_event_ids = []
+        duplicate_event_ids = []
+        rejected = []
+        for event in events:
+            event_id = event.get("event_id") if isinstance(event, dict) else None
+            try:
+                if not isinstance(event, dict):
+                    raise ValueError("event must be an object")
+                result = _insert_live_location(user, employee_data, event, device)
+                if result == "duplicate":
+                    duplicate_event_ids.append(str(event_id))
+                else:
+                    accepted_event_ids.append(str(event_id))
+            except (TypeError, ValueError) as exc:
+                rejected.append(
+                    {
+                        "event_id": str(event_id or ""),
+                        "code": "invalid_event",
+                        "message": str(exc),
+                    }
+                )
+
+        _upsert_live_location_health(
+            user,
+            employee_data,
+            device=device,
+            tracking_state=tracking_state,
+        )
+        frappe.db.commit()
+        return {
+            "accepted_event_ids": accepted_event_ids,
+            "duplicate_event_ids": duplicate_event_ids,
+            "rejected": rejected,
+            "server_received_at": now_datetime(),
+            "health_received_at": now_datetime(),
+        }
+
+    if lat is None or lon is None:
+        return {"status": "error", "message": "lat and lon are required"}
+
+    latitude = float(lat)
+    longitude = float(lon)
     new_record = frappe.get_doc(
         {
             "doctype": "Live Location",
-            "latitude": lat,
-            "longitude": lon,
+            "latitude": latitude,
+            "longitude": longitude,
             "employee": employee_data.get("name"),
             "employee_name": employee_data.get("employee_name"),
             "technician": user,
-            "location": location,
+            "location": _live_location_geojson(latitude, longitude),
             "time": now_datetime(),
+            "received_at": now_datetime(),
+            "location_source": "legacy",
         }
     )
     new_record.insert(ignore_permissions=True)
+    try:
+        _upsert_live_location_health(
+            user,
+            employee_data,
+            device={"installation_id": "legacy", "app_version": "Legacy"},
+            tracking_state={"last_capture_at": now_datetime()},
+            legacy=True,
+        )
+    except Exception:
+        # Diagnostics must never break the location endpoint used by old apps.
+        frappe.log_error(
+            frappe.get_traceback(), "Legacy Live Location Health Update Error"
+        )
     frappe.db.commit()
     return {"status": "success", "message": "Updated live Location"}
 

@@ -14,8 +14,20 @@
   "time",
   "latitude",
   "longitude",
+  "event_id",
+  "sequence",
+  "installation_id",
   "section_break_ygsm",
-  "location"
+  "location",
+  "capture_details_section",
+  "captured_at",
+  "received_at",
+  "accuracy_m",
+  "altitude_m",
+  "speed_mps",
+  "heading_deg",
+  "is_mocked",
+  "location_source"
  ],
  "fields": [
   {
@@ -39,6 +51,25 @@
    "in_list_view": 1,
    "label": "Longitude",
    "reqd": 1
+  },
+  {
+   "fieldname": "event_id",
+   "fieldtype": "Data",
+   "label": "Event ID",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Device Sequence",
+   "read_only": 1
+  },
+  {
+   "fieldname": "installation_id",
+   "fieldtype": "Data",
+   "label": "Installation ID",
+   "read_only": 1
   },
   {
    "fieldname": "time",
@@ -74,6 +105,60 @@
    "fieldname": "location",
    "fieldtype": "Geolocation",
    "label": "Location"
+  },
+  {
+   "fieldname": "capture_details_section",
+   "fieldtype": "Section Break",
+   "label": "Capture Details"
+  },
+  {
+   "fieldname": "captured_at",
+   "fieldtype": "Datetime",
+   "label": "Captured At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "received_at",
+   "fieldtype": "Datetime",
+   "label": "Received At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "accuracy_m",
+   "fieldtype": "Float",
+   "label": "Accuracy (m)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "altitude_m",
+   "fieldtype": "Float",
+   "label": "Altitude (m)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "speed_mps",
+   "fieldtype": "Float",
+   "label": "Speed (m/s)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "heading_deg",
+   "fieldtype": "Float",
+   "label": "Heading (degrees)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_mocked",
+   "fieldtype": "Check",
+   "label": "Mock Location",
+   "read_only": 1
+  },
+  {
+   "fieldname": "location_source",
+   "fieldtype": "Data",
+   "label": "Location Source",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
