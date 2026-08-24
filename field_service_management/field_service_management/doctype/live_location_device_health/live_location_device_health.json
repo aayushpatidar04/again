@@ -1,0 +1,233 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-08-24 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "health_status",
+  "technician",
+  "employee",
+  "employee_name",
+  "last_heartbeat",
+  "device_section",
+  "installation_id",
+  "device_model",
+  "platform",
+  "android_version",
+  "android_sdk",
+  "app_version",
+  "tracking_section",
+  "tracking_enabled",
+  "service_running",
+  "location_service_enabled",
+  "location_permission",
+  "precise_location",
+  "battery_unrestricted",
+  "network_connected",
+  "erp_reachable",
+  "sync_section",
+  "last_capture_at",
+  "last_app_acknowledgement",
+  "pending_count",
+  "last_error_code",
+  "last_error_message",
+  "health_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "health_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Health",
+   "options": "Healthy\nDegraded\nBlocked\nLegacy App",
+   "read_only": 1
+  },
+  {
+   "fieldname": "technician",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Technician",
+   "options": "User",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_heartbeat",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Heartbeat",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "device_section",
+   "fieldtype": "Section Break",
+   "label": "Device"
+  },
+  {
+   "fieldname": "installation_id",
+   "fieldtype": "Data",
+   "label": "Installation ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "device_model",
+   "fieldtype": "Data",
+   "label": "Device Model",
+   "read_only": 1
+  },
+  {
+   "fieldname": "platform",
+   "fieldtype": "Data",
+   "label": "Platform",
+   "read_only": 1
+  },
+  {
+   "fieldname": "android_version",
+   "fieldtype": "Data",
+   "label": "Android Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "android_sdk",
+   "fieldtype": "Int",
+   "label": "Android SDK",
+   "read_only": 1
+  },
+  {
+   "fieldname": "app_version",
+   "fieldtype": "Data",
+   "label": "App Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Tracking State"
+  },
+  {
+   "fieldname": "tracking_enabled",
+   "fieldtype": "Check",
+   "label": "Tracking Requested",
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_running",
+   "fieldtype": "Check",
+   "label": "Tracking Service Running",
+   "read_only": 1
+  },
+  {
+   "fieldname": "location_service_enabled",
+   "fieldtype": "Check",
+   "label": "Device Location Enabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "location_permission",
+   "fieldtype": "Data",
+   "label": "Location Permission",
+   "read_only": 1
+  },
+  {
+   "fieldname": "precise_location",
+   "fieldtype": "Check",
+   "label": "Precise Location",
+   "read_only": 1
+  },
+  {
+   "fieldname": "battery_unrestricted",
+   "fieldtype": "Check",
+   "label": "Battery Unrestricted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "network_connected",
+   "fieldtype": "Check",
+   "label": "Network Connected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erp_reachable",
+   "fieldtype": "Check",
+   "label": "ERP Reachable",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sync_section",
+   "fieldtype": "Section Break",
+   "label": "Capture and Synchronization"
+  },
+  {
+   "fieldname": "last_capture_at",
+   "fieldtype": "Datetime",
+   "label": "Last Captured",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_app_acknowledgement",
+   "fieldtype": "Datetime",
+   "label": "Last ERP Acknowledgement Reported by App",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pending_count",
+   "fieldtype": "Int",
+   "label": "Pending Uploads",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_error_code",
+   "fieldtype": "Data",
+   "label": "Last Error Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_error_message",
+   "fieldtype": "Small Text",
+   "label": "Last Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "health_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Health Key",
+   "read_only": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-08-24 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Field Service Management",
+ "name": "Live Location Device Health",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "last_heartbeat",
+ "sort_order": "DESC",
+ "states": []
+}
