@@ -95,11 +95,36 @@ def get_context(context=None):
      ))
      technicians = [tech for tech in technicians if tech.email in displayable_emails]
 
+ all_issues = issues + lead_issues
+ lead_ids = {issue.custom_lead for issue in all_issues if issue.custom_lead}
+ lead_name_by_id = {}
+ if lead_ids:
+     lead_name_by_id = {
+         lead.name: lead.lead_name
+         for lead in frappe.get_all(
+             "Lead",
+             filters={"name": ["in", list(lead_ids)]},
+             fields=["name", "lead_name"],
+         )
+     }
+
 
 
 
  def enrich_issue(issue):
-     issue.customer = issue.customer or issue.custom_lead
+     if issue.customer:
+         issue.party_label = "Customer"
+         issue.party_name = issue.customer
+     elif issue.custom_lead:
+         issue.party_label = "Lead"
+         lead_name = lead_name_by_id.get(issue.custom_lead)
+         issue.party_name = (
+             f"{issue.custom_lead} ({lead_name})"
+             if lead_name else issue.custom_lead
+         )
+     else:
+         issue.party_label = "Customer"
+         issue.party_name = ""
 
      if issue._assign:
          try:
