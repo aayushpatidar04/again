@@ -34,7 +34,8 @@ def get_context(context=None):
                "maintenance_description",
                "customer_address",
                "completion_status",
-               "customer"
+               "customer",
+               "custom_lead"
            ],
        )
        technicians = frappe.get_all(
@@ -66,7 +67,8 @@ def get_context(context=None):
                "maintenance_description",
                "customer_address",
                "completion_status",
-               "customer"
+               "customer",
+               "custom_lead"
            ],
        )
        technicians = frappe.get_all(
@@ -98,6 +100,8 @@ def get_context(context=None):
        ))
        technicians = [tech for tech in technicians if tech.email in displayable_emails]
    for issue in issues:
+       issue.customer = issue.customer or issue.custom_lead
+
        if issue._assign:
            try:
                assign_list = json.loads(issue._assign)
@@ -569,6 +573,5 @@ def save_form_data(form_data):
 #         return {"success": "success"}
 #     except Exception as e:
 #         return {"error": "error", "message": str(e)}
-
 
 

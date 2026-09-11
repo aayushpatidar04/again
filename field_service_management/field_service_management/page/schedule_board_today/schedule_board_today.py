@@ -30,14 +30,14 @@ def get_context(context=None):
          filters={"_assign": ""},
          fields=["name", "subject", "status", "creation", "maintenance_type",
                   "_assign", "description", "maintenance_description",
-                  "customer_address", "completion_status", "customer"],
+                  "customer_address", "completion_status", "customer", "custom_lead"],
      )
      lead_issues = frappe.get_all(
          "Maintenance Visit",
          filters={"_assign": ["!=", ""]},
          fields=["name", "subject", "status", "creation", "maintenance_type",
                   "_assign", "description", "maintenance_description",
-                  "customer_address", "completion_status", "customer"],
+                  "customer_address", "completion_status", "customer", "custom_lead"],
      )
      technicians = frappe.get_all(
          "User",
@@ -56,14 +56,14 @@ def get_context(context=None):
          filters={"territory": ["in", territory_list], "_assign": ""},
          fields=["name", "subject", "status", "creation", "maintenance_type",
                   "_assign", "description", "maintenance_description",
-                  "customer_address", "completion_status", "customer"],
+                  "customer_address", "completion_status", "customer", "custom_lead"],
      )
      lead_issues = frappe.get_all(
          "Maintenance Visit",
          filters={"territory": ["in", territory_list], "_assign": ["!=", ""]},
          fields=["name", "subject", "status", "creation", "maintenance_type",
                   "_assign", "description", "maintenance_description",
-                  "customer_address", "completion_status", "customer"],
+                  "customer_address", "completion_status", "customer", "custom_lead"],
      )
      technicians = frappe.get_all(
          "User",
@@ -99,6 +99,8 @@ def get_context(context=None):
 
 
  def enrich_issue(issue):
+     issue.customer = issue.customer or issue.custom_lead
+
      if issue._assign:
          try:
              assign_list = json.loads(issue._assign)
