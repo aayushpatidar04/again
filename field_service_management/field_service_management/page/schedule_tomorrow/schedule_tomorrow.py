@@ -141,7 +141,7 @@ def get_context(context=None):
 
        # geolocation --------------------------------------------------
        geolocation = frappe.get_all('Address', filters={'name': issue.customer_address}, fields=['geolocation'])
-       if geolocation[0].geolocation:
+       if geolocation and geolocation[0].geolocation:
            geolocation = json.loads(geolocation[0].geolocation)
            issue.geolocation = json.dumps(geolocation['features']).replace('"', "'")
        else:
