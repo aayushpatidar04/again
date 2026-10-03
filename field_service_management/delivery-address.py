@@ -203,11 +203,21 @@ def update_maintenance_visit(maintenance_visit, name):
     if not maintenance_visit:
         return
     try:
-        frappe.db.sql("""
-            UPDATE `tabMaintenance Visit`
-            SET _assign = %s, maintenance_type = %s
-            WHERE name = %s
-        """, ('', 'Rescheduled', maintenance_visit))  # Empty _assign and set maintenance_type to Rescheduled
+        # frappe.db.sql("""
+        #     UPDATE `tabMaintenance Visit`
+        #     SET _assign = %s, maintenance_type = %s
+        #     WHERE name = %s
+        # """, ('', 'Rescheduled', maintenance_visit))  # Empty _assign and set maintenance_type to Rescheduled
+
+        # Scheduling state is independent from the nature of the maintenance work.
+        frappe.db.set_value(
+            "Maintenance Visit",
+            maintenance_visit,
+            {
+                "_assign": "",
+                "custom_scheduling_status": "Rescheduled",
+            },
+        )
         
         # Commit the transaction to ensure changes are saved
         frappe.db.commit()

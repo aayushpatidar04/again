@@ -31,7 +31,7 @@ def get_context(context=None):
       issues = frappe.get_all(
           "Maintenance Visit",
           filters={"_assign": ""},
-          fields=["name", "subject", "status", "creation", "maintenance_type",
+          fields=["name", "subject", "status", "creation", "maintenance_type", "custom_scheduling_status",
                    "_assign", "description", "maintenance_description",
                    "customer_address", "completion_status", "customer", "custom_lead"],
       )
@@ -50,7 +50,7 @@ def get_context(context=None):
       issues = frappe.get_all(
           "Maintenance Visit",
           filters={"territory": ["in", territory_list], "_assign": ""},
-          fields=["name", "subject", "status", "creation", "maintenance_type",
+          fields=["name", "subject", "status", "creation", "maintenance_type", "custom_scheduling_status",
                    "_assign", "description", "maintenance_description",
                    "customer_address", "completion_status", "customer", "custom_lead"],
       )
@@ -560,11 +560,21 @@ def save_form_data(form_data):
 
 
 
-          frappe.db.sql(
-              """
-              UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s, `mntc_date` = %s WHERE name = %s
-          """,
-              (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, date, code),
+          # frappe.db.sql(
+          #     """
+          #     UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s, `mntc_date` = %s WHERE name = %s
+          # """,
+          #     (json.dumps(existing_techs), 'Scheduled', issue_doc.visit_count, date, code),
+          # )
+          frappe.db.set_value(
+              "Maintenance Visit",
+              code,
+              {
+                  "_assign": json.dumps(existing_techs),
+                  "custom_scheduling_status": "Scheduled",
+                  "visit_count": issue_doc.visit_count,
+                  "mntc_date": date,
+              },
           )
 
 
@@ -686,20 +696,38 @@ def update_form_data(form_data):
           if existing_techs:
               issue_doc._assign = json.dumps(existing_techs)
               issue_doc.mntc_date = date
-              frappe.db.sql(
-                  """
-                  UPDATE `tabMaintenance Visit` SET `_assign` = %s, `mntc_date` = %s WHERE name = %s
-                  """,
-                  (json.dumps(existing_techs), date, code),
+              # frappe.db.sql(
+              #     """
+              #     UPDATE `tabMaintenance Visit` SET `_assign` = %s, `mntc_date` = %s WHERE name = %s
+              #     """,
+              #     (json.dumps(existing_techs), date, code),
+              # )
+              frappe.db.set_value(
+                  "Maintenance Visit",
+                  code,
+                  {
+                      "_assign": json.dumps(existing_techs),
+                      "custom_scheduling_status": "Rescheduled",
+                      "mntc_date": date,
+                  },
               )
           else:
               issue_doc._assign = ""
               issue_doc.visit_count = int(issue_doc.visit_count or 1) - 1
-              frappe.db.sql(
-              """
-                  UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
-              """,
-                  ("", 'Unscheduled', issue_doc.visit_count, code),
+              # frappe.db.sql(
+              # """
+              #     UPDATE `tabMaintenance Visit` SET `_assign` = %s, `maintenance_type` = %s, `visit_count` = %s WHERE name = %s
+              # """,
+              #     ("", 'Unscheduled', issue_doc.visit_count, code),
+              # )
+              frappe.db.set_value(
+                  "Maintenance Visit",
+                  code,
+                  {
+                      "_assign": "",
+                      "custom_scheduling_status": "Unscheduled",
+                      "visit_count": issue_doc.visit_count,
+                  },
               )
 
 
