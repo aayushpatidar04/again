@@ -1,361 +1,4044 @@
 <style>
-   .modal.hide{
-       display: none;
-   }
-   .modal.show{
-       display: block;
-   }
-   .modal {
-       max-height: 90vh;
-       overflow-y: auto;
-   }
+  .modal.hide {
+      display: none;
+  }
 
 
-   .modal .modal-content {
-       height: 100%;
-       overflow-y: auto;
-   }
 
 
-   .schedule-sidebar {
-       flex: 0 0 20.833333%;
-       max-width: 20.833333%;
-       padding-right: 10px;
-   }
+  .modal.show {
+      display: block;
+  }
 
 
-   .schedule-calendar {
-       flex: 0 0 79.166667%;
-       max-width: 79.166667%;
-       padding-left: 10px;
-   }
 
 
-   .schedule-user-row {
-       display: grid !important;
-       grid-template-columns: 50px minmax(0, 1fr) 72px;
-       gap: 10px;
-       width: 100%;
-       align-items: center;
-   }
+  .modal {
+      max-height: 90vh;
+      overflow-y: auto;
+  }
 
 
-   .schedule-user-avatar-slot {
-       width: 50px;
-       height: 58px;
-       padding-bottom: 8px;
-       box-sizing: border-box;
-   }
 
 
-   .schedule-user-avatar {
-       width: 50px;
-       height: 50px;
-       border-radius: 50%;
-       object-fit: cover;
-   }
+  .modal .modal-content {
+      height: 100%;
+      overflow-y: auto;
+  }
 
 
-   .schedule-user-details {
-       flex: 1;
-       min-width: 0;
-   }
+  .calendar-task-modal.modal {
+      align-items: center;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      background: rgba(15, 23, 42, 0.48);
+      inset: 0;
+      justify-content: center;
+      max-height: none;
+      overflow: auto;
+      padding: 24px;
+      position: fixed;
+      z-index: 1060;
+  }
 
 
-   .schedule-user-percentage {
-       flex: 0 0 72px;
-       text-align: right;
-       white-space: nowrap;
-   }
+  .calendar-task-modal.modal.show {
+      display: flex;
+  }
+
+
+  .calendar-task-modal .modal-dialog {
+      margin: auto !important;
+      max-width: 780px !important;
+      width: min(780px, calc(100vw - 48px));
+  }
+
+
+  .calendar-task-modal .modal-content {
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+      height: auto;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+  }
+
+
+  body.calendar-task-modal-open {
+      overflow: hidden !important;
+  }
+
+
+  .schedule-board-form-modal.modal {
+      align-items: center;
+      background: rgba(15, 23, 42, 0.48);
+      display: flex;
+      inset: 0;
+      justify-content: center;
+      max-height: none;
+      overflow: auto;
+      padding: 24px;
+      position: fixed;
+      z-index: 1060;
+  }
+
+
+  .schedule-board-form-modal.modal.hide {
+      display: none;
+  }
+
+
+  .schedule-board-form-dialog {
+      margin: auto !important;
+      max-width: 700px !important;
+      width: min(700px, calc(100vw - 48px));
+  }
+
+
+  .schedule-board-form-content {
+      border: 0;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+      height: auto !important;
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+  }
+
+
+  .schedule-board-form-header {
+      align-items: flex-start;
+      border-bottom: 1px solid #e6eaf0;
+      display: flex;
+      gap: 24px;
+      justify-content: space-between;
+      padding: 22px 24px 18px;
+  }
+
+
+  .schedule-board-form-header > div:first-child {
+      flex: 1 1 auto;
+      min-width: 0;
+      width: auto;
+  }
+
+
+  .calendar-task-kicker {
+      color: #667085;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+  }
+
+
+  .schedule-board-form-header .modal-title {
+      color: #a80707;
+      display: block;
+      font-size: 22px;
+      font-weight: 750;
+      line-height: 1.2;
+      margin: 0;
+      max-width: none;
+      overflow-wrap: anywhere;
+      width: 100%;
+  }
+
+
+  .schedule-board-form-header > .close {
+      flex: 0 0 auto;
+      margin-left: auto;
+  }
+
+
+  .schedule-board-form-body {
+      max-height: calc(100vh - 190px);
+      overflow-y: auto;
+      padding: 22px 24px 10px;
+  }
+
+
+  .calendar-task-form {
+      display: grid;
+      gap: 18px;
+  }
+
+
+  .calendar-task-field-group {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+  }
+
+
+  .calendar-task-label {
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0;
+  }
+
+
+  .calendar-task-help {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 400;
+  }
+
+
+  .calendar-task-required {
+      color: #b42318;
+  }
+
+
+  .calendar-task-form .form-control,
+  .calendar-task-form .form-select {
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 10px;
+      color: #1d2939;
+      min-height: 42px;
+      padding: 9px 12px;
+  }
+
+
+  .calendar-task-form .form-control:focus,
+  .calendar-task-form .form-select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      outline: 0;
+  }
+
+
+  .calendar-task-form .calendar-task-readonly {
+      background: #f8fafc;
+      color: #475467;
+      cursor: pointer;
+  }
+
+
+  .calendar-task-time-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+
+  .calendar-task-error {
+      min-height: 16px;
+  }
+
+
+  .calendar-task-footer {
+      align-items: center;
+      background: #fbfcfe;
+      border-top: 1px solid #e6eaf0;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin: 2px -24px -10px;
+      padding: 16px 24px;
+  }
+
+
+  .calendar-task-cancel,
+  .calendar-task-submit {
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      min-height: 40px;
+      padding: 8px 16px;
+  }
+
+
+  .calendar-task-cancel {
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      color: #344054;
+  }
+
+
+  .calendar-task-submit {
+      background: #b42318;
+      border: 1px solid #b42318;
+      color: #fff;
+  }
+
+
+  .calendar-task-submit:hover,
+  .calendar-task-submit:focus {
+      background: #921b12;
+      border-color: #921b12;
+      color: #fff;
+  }
+
+
+  .visit-assignment-modal.modal {
+      align-items: center;
+      background: rgba(15, 23, 42, 0.48);
+      display: flex;
+      inset: 0;
+      justify-content: center;
+      max-height: none;
+      overflow: auto;
+      padding: 18px;
+      position: fixed;
+      z-index: 1070;
+  }
+
+
+  .visit-assignment-modal.modal.hide {
+      display: none;
+  }
+
+
+  .visit-assignment-modal .schedule-board-form-content {
+      max-height: calc(100vh - 36px);
+  }
+
+
+  .visit-assignment-modal .schedule-board-form-body {
+      max-height: calc(100vh - 178px);
+  }
+
+
+  body.visit-assignment-open {
+      overflow: hidden !important;
+  }
+
+
+  #visit-assign-error {
+      color: #b42318;
+      font-size: 12px;
+      font-weight: 600;
+      min-height: 16px;
+  }
+
+
+  .calendar-task-form select.technician {
+      height: 142px;
+      min-height: 142px;
+      overflow-y: auto;
+      padding: 6px 8px;
+  }
+
+
+  .calendar-task-form select.technician option {
+      border-radius: 6px;
+      padding: 7px 9px;
+  }
+
+
+  .calendar-task-form select.technician option:checked {
+      background: #dbeafe linear-gradient(0deg, #dbeafe, #dbeafe);
+      color: #174ea6;
+      font-weight: 700;
+  }
+
+
+  .assign-visit {
+      align-items: center;
+      background: #eff6ff;
+      border: 1px solid #b7d2ff;
+      border-radius: 7px;
+      color: #2457a6;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 700;
+      justify-content: center;
+      line-height: 1;
+      min-height: 29px;
+      padding: 6px 9px;
+      white-space: nowrap;
+  }
+
+
+  .assign-visit:hover,
+  .assign-visit:focus-visible {
+      background: #dbeafe;
+      border-color: #84adff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+      color: #174ea6;
+      outline: none;
+  }
+
+
+  @media (max-width: 640px) {
+      .schedule-board-form-modal.modal,
+      .calendar-task-modal.modal {
+          padding: 10px;
+      }
+
+
+      .schedule-board-form-dialog,
+      .calendar-task-modal .modal-dialog {
+          width: 100%;
+      }
+
+
+      .schedule-board-form-content,
+      .calendar-task-modal .modal-content {
+          border-radius: 14px;
+          max-height: calc(100dvh - 20px);
+      }
+
+      .schedule-board-form-header,
+      .schedule-board-form-body,
+      .calendar-task-footer {
+          padding-left: 16px;
+          padding-right: 16px;
+      }
+
+
+      .calendar-task-footer {
+          margin-left: -16px;
+          margin-right: -16px;
+      }
+
+
+      .calendar-task-time-grid {
+          grid-template-columns: 1fr;
+      }
+  }
+
+
+  .schedule-user-row {
+      display: grid !important;
+      grid-template-columns: 50px minmax(0, 1fr) 72px;
+      gap: 10px;
+      width: 100%;
+      align-items: center;
+  }
+
+
+  .schedule-user-avatar-slot {
+      align-items: center;
+      background: linear-gradient(145deg, #eef2ff, #e0e7ff);
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+      color: #4338ca;
+      display: flex;
+      width: 50px;
+      height: 58px;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+  }
+
+
+  .schedule-user-avatar-fallback {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      text-transform: uppercase;
+  }
+
+
+  .schedule-user-avatar {
+      inset: 0;
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+  }
+
+
+  .schedule-user-details {
+      min-width: 0;
+  }
+
+
+  .schedule-user-percentage {
+      text-align: right;
+      white-space: nowrap;
+  }
+
+
+  .maintenance-visit-card.is-selected {
+      border-color: var(--primary, #2490ef);
+      box-shadow: 0 0 0 2px rgba(36, 144, 239, 0.14);
+  }
+
+
+  .maintenance-inline-detail-wrapper {
+      margin: 18px 0 0;
+  }
+
+
+  .maintenance-inline-detail-wrapper .card-header {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+  }
+
+
+  .maintenance-inline-panel .nav-tabs {
+      /* OLD: flex-wrap: wrap; */
+      flex-wrap: nowrap;
+      gap: 4px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      white-space: nowrap;
+  }
+
+
+  .maintenance-inline-panel .nav-item {
+      flex: 0 0 auto;
+  }
+
+
+  .maintenance-inline-panel .tab-pane {
+      padding: 16px 2px 4px;
+  }
+
+
+  .maintenance-inline-empty {
+      color: var(--text-muted, #6c7680);
+      padding: 28px 16px;
+      text-align: center;
+  }
+
+
+  .maintenance-inline-image {
+      border-radius: 6px;
+      max-height: 180px;
+      max-width: 220px;
+      object-fit: contain;
+  }
+
+  .checklist-preview-group {
+      border-bottom: 1px solid #edf0f4;
+      padding: 8px 0 14px;
+  }
+
+  .checklist-preview-group:last-child {
+      border-bottom: 0;
+  }
+
+  .checklist-preview-title {
+      color: var(--board-ink, #172033);
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 10px;
+  }
+
+  /* OLD: Checklist rows were static flex rows with disabled checkboxes. */
+  .checklist-preview-step-card {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 10px;
+      margin-bottom: 9px;
+      overflow: hidden;
+  }
+
+  .checklist-preview-step-toggle {
+      align-items: center;
+      background: #f8fafc;
+      border: 0;
+      color: #344054;
+      cursor: pointer;
+      display: flex;
+      gap: 10px;
+      padding: 11px 12px;
+      text-align: left;
+      width: 100%;
+  }
+
+  .checklist-preview-step-toggle:hover {
+      background: #f2f4f7;
+  }
+
+  .checklist-preview-step-toggle:focus-visible {
+      box-shadow: inset 0 0 0 2px var(--board-accent, #b42318);
+      outline: none;
+  }
+
+  .checklist-preview-chevron {
+      color: var(--board-accent, #b42318);
+      font-size: 18px;
+      line-height: 1;
+      transition: transform 140ms ease;
+  }
+
+  .checklist-preview-step-toggle[aria-expanded="true"] .checklist-preview-chevron {
+      transform: rotate(90deg);
+  }
+
+  .checklist-preview-step-heading {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 0;
+  }
+
+  .checklist-preview-step-body {
+      border-top: 1px solid #eaecf0;
+      padding: 12px;
+  }
+
+  .checklist-preview-metadata {
+      display: grid;
+      gap: 8px 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 12px;
+  }
+
+  .checklist-preview-details,
+  .checklist-preview-parent-footer {
+      color: #475467;
+      font-size: 12px;
+      margin-bottom: 12px;
+  }
+
+  .checklist-preview-parent-footer {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+  }
+
+  .checklist-preview-substeps {
+      border-left: 2px solid #e4e7ec;
+      margin-left: 6px;
+      padding-left: 14px;
+  }
+
+  .checklist-preview-substeps-title {
+      color: #344054;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+  }
+
+  .checklist-preview-substep {
+      border-bottom: 1px solid #f0f2f5;
+      color: #667085;
+      font-size: 12px;
+      padding: 9px 4px;
+  }
+
+  .checklist-preview-substep:last-child {
+      border-bottom: 0;
+  }
+
+  .checklist-preview-substep-main,
+  .checklist-preview-substep-meta {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+  }
+
+  .checklist-preview-substep-main > span:first-child {
+      color: #344054;
+      flex: 1;
+      font-weight: 600;
+  }
+
+  .checklist-preview-substep-meta {
+      margin-top: 5px;
+  }
+
+  .checklist-status-badge {
+      border-radius: 999px;
+      flex: 0 0 auto;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+  }
+
+  .checklist-status-badge.is-complete {
+      background: #ecfdf3;
+      color: #027a48;
+  }
+
+  .checklist-status-badge.is-pending {
+      background: #fffaeb;
+      color: #b54708;
+  }
+
+  .checklist-preview-image-button {
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      color: #344054;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 9px;
+  }
+
+  .checklist-preview-image-button:hover {
+      border-color: var(--board-accent, #b42318);
+      color: var(--board-accent, #b42318);
+  }
+
+  .maintenance-inline-empty.compact {
+      padding: 12px 4px;
+      text-align: left;
+  }
+
+
+  .visit-summary-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 14px;
+  }
+
+
+  .visit-summary-card {
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border-color, #dfe2e5);
+      border-radius: 8px;
+      padding: 12px 14px;
+  }
+
+
+  .visit-summary-label {
+      color: var(--text-muted, #6c7680);
+      font-size: 12px;
+      margin-bottom: 4px;
+  }
+
+
+  .visit-summary-value {
+      color: var(--text-color, #1f272e);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1;
+  }
+
+
+  .horizontal-visit-list {
+      border: 1px solid var(--border-color, #dfe2e5);
+      border-radius: 8px;
+      overflow-x: auto;
+  }
+
+
+  .horizontal-visit-header,
+  .horizontal-visit-row {
+      align-items: center;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: minmax(190px, 2fr) minmax(140px, 1.4fr) minmax(140px, 1.3fr) minmax(120px, 1fr) 100px 125px 62px;
+      min-width: 980px;
+      padding: 10px 12px;
+  }
+
+
+  .horizontal-visit-header {
+      background: var(--subtle-fg, #f5f7fa);
+      border-bottom: 1px solid var(--border-color, #dfe2e5);
+      color: var(--text-muted, #6c7680);
+      font-size: 11px;
+      font-weight: 600;
+      position: sticky;
+      text-transform: uppercase;
+      top: 0;
+      z-index: 1;
+  }
+
+
+  .horizontal-visit-row {
+      background: var(--card-bg, #fff);
+      border-bottom: 1px solid var(--border-color, #edf0f2);
+      cursor: grab;
+      font-size: 12px;
+      user-select: none;
+  }
+
+
+  .horizontal-visit-row:last-child {
+      border-bottom: 0;
+  }
+
+
+  .horizontal-visit-subject,
+  .horizontal-visit-party,
+  .horizontal-visit-assignee {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+
+
+  .horizontal-visit-meta {
+      color: var(--text-muted, #6c7680);
+      display: block;
+      font-size: 10px;
+      margin-top: 2px;
+  }
+
+
+  .horizontal-progress-track {
+      background: #edf0f2;
+      border-radius: 10px;
+      height: 6px;
+      overflow: hidden;
+      width: 64px;
+  }
+
+
+  .horizontal-progress-value {
+      background: #2490ef;
+      height: 100%;
+  }
+
+
+  .horizontal-status-pill {
+      background: #f4f5f6;
+      border-radius: 12px;
+      display: inline-block;
+      padding: 4px 8px;
+      white-space: nowrap;
+  }
+
+
+  @media (max-width: 991px) {
+      .visit-summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+  }
+
+  /* Today board UI/UX refresh. Existing functional selectors remain unchanged. */
+  .schedule-board-canvas {
+      --board-accent: #b42318;
+      --board-accent-soft: #fef3f2;
+      --board-blue: #2563eb;
+      --board-amber: #d97706;
+      --board-green: #059669;
+      --board-ink: #172033;
+      --board-muted: #667085;
+      --board-line: #e7eaf0;
+      background: linear-gradient(180deg, #f8fafc 0, #f4f6f9 100%);
+      border-radius: 16px;
+      color: var(--board-ink);
+      padding: 18px;
+  }
+
+  /* Use the available desktop workspace for planning while retaining clear
+     gutters. This is scoped through classes added by the Today Board page. */
+  @media (min-width: 1600px) {
+      .schedule-board-page-head-container {
+          margin-left: 32px !important;
+          margin-right: 32px !important;
+          max-width: none !important;
+          width: calc(100% - 64px) !important;
+      }
+      .schedule-board-page-body .layout-main-section {
+          padding-left: 32px;
+          padding-right: 32px;
+      }
+      .schedule-board-page-body .schedule-board-workspace {
+          width: 100%;
+      }
+  }
+
+  .visit-summary-grid {
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-bottom: 18px;
+  }
+
+  .visit-summary-card {
+      align-items: center;
+      background: #fff;
+      border: 1px solid rgba(15, 23, 42, 0.07);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      display: flex;
+      gap: 13px;
+      min-height: 86px;
+      padding: 16px;
+      position: relative;
+      transition: box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .visit-summary-card:hover {
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+      transform: translateY(-2px);
+  }
+
+  .visit-summary-icon {
+      align-items: center;
+      background: #eef2ff;
+      border-radius: 12px;
+      color: #4f46e5;
+      display: flex;
+      flex: 0 0 46px;
+      font-size: 19px;
+      height: 46px;
+      justify-content: center;
+  }
+
+  .visit-summary-card.summary-unscheduled .visit-summary-icon {
+      background: #fff7ed;
+      color: var(--board-amber);
+  }
+
+  .visit-summary-card.summary-progress .visit-summary-icon {
+      background: #eff6ff;
+      color: var(--board-blue);
+  }
+
+  .visit-summary-card.summary-completed .visit-summary-icon {
+      background: #ecfdf3;
+      color: var(--board-green);
+  }
+
+  .visit-summary-card.summary-type .visit-summary-icon {
+      background: #f5f3ff;
+      color: #7c3aed;
+  }
+
+  .visit-summary-card.summary-type:nth-child(4n + 2) .visit-summary-icon {
+      background: #eff6ff;
+      color: #2563eb;
+  }
+
+  .visit-summary-card.summary-type:nth-child(4n + 3) .visit-summary-icon {
+      background: #fff7ed;
+      color: #d97706;
+  }
+
+  .visit-summary-card.summary-type:nth-child(4n + 4) .visit-summary-icon {
+      background: #ecfdf3;
+      color: #059669;
+  }
+
+  .visit-summary-card::after {
+      background: #4f46e5;
+      border-radius: 4px 4px 0 0;
+      bottom: 0;
+      content: "";
+      height: 3px;
+      left: 16px;
+      opacity: 0.8;
+      position: absolute;
+      right: 16px;
+  }
+
+  .visit-summary-card.summary-unscheduled::after { background: var(--board-amber); }
+  .visit-summary-card.summary-progress::after { background: var(--board-blue); }
+  .visit-summary-card.summary-completed::after { background: var(--board-green); }
+  .visit-summary-card.summary-type::after { background: #7c3aed; }
+
+  .visit-summary-label {
+      color: var(--board-muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin: 0 0 5px;
+      text-transform: uppercase;
+  }
+
+  .visit-summary-value {
+      color: var(--board-ink);
+      font-size: 28px;
+      font-weight: 700;
+  }
+
+  .board-panel {
+      background: #fff;
+      border: 1px solid rgba(15, 23, 42, 0.07);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
+      overflow: visible;
+      padding: 18px;
+  }
+
+  .visit-list-toolbar {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      min-width: 0;
+      flex-wrap: wrap;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+  }
+
+  .visit-list-toolbar > div:first-child {
+      flex: 1 1 320px;
+      min-width: min(320px, 100%);
+  }
+
+  .board-eyebrow {
+      color: var(--board-accent);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+  }
+
+  .board-section-title {
+      color: var(--board-ink);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0;
+  }
+
+  .board-section-subtitle {
+      color: var(--board-muted);
+      font-size: 12px;
+      margin: 5px 0 0;
+  }
+
+  .visit-filter-group {
+      align-items: center;
+      display: flex;
+      flex: 1 1 100%;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-start;
+      max-width: 100%;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+  }
+
+  .visit-filter-group > * {
+      box-sizing: border-box;
+      max-width: 100%;
+      min-width: 0;
+  }
+
+  .visit-filter-control {
+      background: #f8fafc;
+      border: 1px solid #dfe3ea;
+      border-radius: 9px;
+      color: var(--board-ink);
+      font-size: 12px;
+      height: 36px;
+      min-width: 150px;
+      outline: 0;
+      padding: 0 11px;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+  }
+
+  .visit-search-wrap {
+      position: relative;
+  }
+
+  .visit-search-wrap::before {
+      color: #98a2b3;
+      content: "⌕";
+      font-size: 18px;
+      left: 11px;
+      position: absolute;
+      top: 5px;
+  }
+
+  .visit-search-wrap .visit-filter-control {
+      min-width: 200px;
+      padding-left: 34px;
+      width: 200px;
+  }
+
+  #visit-status-filter {
+      min-width: 145px;
+      width: 145px;
+  }
+
+  #visit-type-filter {
+      min-width: 180px;
+      width: 180px;
+  }
+
+  #visit-assignment-filter,
+  #visit-territory-filter { min-width: 145px; width: 145px; }
+
+  .visit-filter-control:focus {
+      background: #fff;
+      border-color: rgba(180, 35, 24, 0.55);
+      box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.09);
+  }
+
+  .visible-visit-count {
+      background: var(--board-accent-soft);
+      border-radius: 999px;
+      color: var(--board-accent);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 7px 10px;
+      white-space: nowrap;
+  }
+
+  .horizontal-visit-list {
+      border-color: var(--board-line);
+      border-radius: 11px;
+      /* Four rows remain visible; additional visits are available by scrolling. */
+      max-height: 326px;
+      overflow: auto;
+  }
+
+  .horizontal-visit-header,
+  .horizontal-visit-row {
+      grid-template-columns: minmax(210px, 1.35fr) minmax(220px, 1.55fr) minmax(150px, 0.85fr) minmax(140px, 0.72fr) 100px;
+      min-width: 900px;
+  }
+
+  /* On the board desktop workspace the queue and calendar share one
+     panel width.  Let the five queue columns consume that width rather than
+     forcing the Completion column outside the right edge. */
+  @media (min-width: 1101px) {
+      .horizontal-visit-header,
+      .horizontal-visit-row {
+          grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.2fr) minmax(118px, .72fr) minmax(125px, .62fr) minmax(150px, .82fr);
+          min-width: 0;
+          width: 100%;
+      }
+  }
+
+  .horizontal-visit-header {
+      background: #f8fafc;
+      border-bottom-color: var(--board-line);
+      color: #667085;
+      padding-bottom: 11px;
+      padding-top: 11px;
+      top: 0;
+      z-index: 3;
+  }
+
+  .horizontal-visit-row {
+      border-bottom-color: #eef1f5;
+      min-height: 68px;
+      padding-bottom: 12px;
+      padding-top: 12px;
+      position: relative;
+      transition: background 140ms ease, box-shadow 140ms ease;
+  }
+
+  .horizontal-visit-row::before {
+      background: transparent;
+      border-radius: 0 4px 4px 0;
+      bottom: 8px;
+      content: "";
+      left: 0;
+      position: absolute;
+      top: 8px;
+      width: 3px;
+  }
+
+  .horizontal-visit-row:hover {
+      background: #fbfcfe;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.04);
+  }
+
+  .horizontal-visit-row:hover::before,
+  .horizontal-visit-row.is-selected::before {
+      background: var(--board-accent);
+  }
+
+  .horizontal-visit-row.is-selected {
+      background: #fff8f7;
+      border-color: rgba(180, 35, 24, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(180, 35, 24, 0.11);
+  }
+
+  .calendar-panel .calendar-task-card.is-selected {
+      box-shadow: inset 0 0 0 2px #fff, 0 0 0 3px var(--board-accent);
+      position: relative;
+      z-index: 2;
+  }
+
+  .horizontal-visit-subject strong {
+      color: var(--board-ink);
+      font-size: 13px;
+  }
+
+  .horizontal-progress-track {
+      background: #e9edf3;
+      height: 7px;
+      width: 72px;
+  }
+
+  .horizontal-progress-value {
+      background: linear-gradient(90deg, #2563eb, #60a5fa);
+      border-radius: inherit;
+  }
+
+  .horizontal-status-pill {
+      background: #fff7ed;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      box-sizing: border-box;
+      color: #b45309;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      max-width: 100%;
+      min-height: 34px;
+      min-width: 120px;
+      outline: none;
+      padding: 7px 12px;
+      width: 100%;
+  }
+
+  select.horizontal-status-pill {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 30px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22m1 1 4 4 4-4%22 fill=%22none%22 stroke=%22%23667485%22 stroke-width=%221.5%22/%3E%3C/svg%3E");
+      background-position: right 8px center;
+      background-repeat: no-repeat;
+  }
+
+  select.horizontal-status-pill:focus-visible {
+      border-color: #84adff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  }
+
+  select.horizontal-status-pill:disabled {
+      cursor: default;
+      opacity: 1;
+  }
+
+  .horizontal-visit-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      min-width: 0;
+  }
+
+  .horizontal-visit-header > div:last-child { text-align: center; }
+
+  .create-visit-issue {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #cfd8e6;
+      border-radius: 7px;
+      color: #2457a6;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 700;
+      gap: 3px;
+      justify-content: center;
+      line-height: 1;
+      min-height: 29px;
+      padding: 6px 8px;
+      white-space: nowrap;
+  }
+
+  .create-visit-issue:hover,
+  .create-visit-issue:focus-visible {
+      background: #eff6ff;
+      border-color: #84adff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+      color: #174ea6;
+      outline: none;
+  }
+
+  .horizontal-visit-row[data-completion="Fully Completed"] .horizontal-status-pill {
+      background: #ecfdf3;
+      color: #027a48;
+  }
+
+  .horizontal-visit-row[data-completion="Pending"] .horizontal-status-pill,
+  .horizontal-visit-row:not([data-completion]) .horizontal-status-pill,
+  .horizontal-visit-row[data-completion=""] .horizontal-status-pill {
+      background: #fff7ed;
+      color: #b45309;
+  }
+
+  .horizontal-visit-row[data-completion="Partially Completed"] .horizontal-status-pill {
+      background: #eff6ff;
+      color: #175cd3;
+  }
+
+  .visit-details-button {
+      background: #fff;
+      border: 1px solid #d6dae2;
+      border-radius: 8px;
+      color: #344054 !important;
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 9px;
+      text-decoration: none !important;
+      transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+
+  .visit-details-button:hover {
+      background: var(--board-accent-soft);
+      border-color: rgba(180, 35, 24, 0.32);
+      color: var(--board-accent) !important;
+  }
+
+  .visit-filter-empty {
+      color: var(--board-muted);
+      padding: 34px 16px;
+      text-align: center;
+  }
+
+  .visit-filter-empty button {
+      background: #fff;
+      border: 1px solid var(--board-line);
+      border-radius: 8px;
+      color: var(--board-accent);
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 8px;
+      padding: 6px 10px;
+  }
+
+  .visit-filter-empty button:hover {
+      background: var(--board-accent-soft);
+      border-color: rgba(180, 35, 24, 0.32);
+  }
+
+  .calendar-panel.card,
+  .maintenance-inline-detail-wrapper.card {
+      border: 1px solid rgba(15, 23, 42, 0.07);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
+      overflow: visible;
+  }
+
+  .calendar-panel .card-header,
+  .maintenance-inline-detail-wrapper .card-header {
+      background: #fff;
+      border-bottom: 1px solid var(--board-line);
+      border-radius: 14px 14px 0 0;
+      padding: 15px 18px;
+  }
+
+  .calendar-guidance {
+      align-items: center;
+      background: #f8fafc;
+      border: 1px dashed #d7dce5;
+      border-radius: 9px;
+      color: var(--board-muted);
+      display: flex;
+      font-size: 12px;
+      gap: 8px;
+      margin-bottom: 15px;
+      padding: 9px 12px;
+  }
+
+  .calendar-guidance-dot {
+      background: #e0f2fe;
+      border: 2px solid #38bdf8;
+      border-radius: 50%;
+      flex: 0 0 10px;
+      height: 10px;
+  }
+
+  .next7-calendar-days {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 0 0 14px;
+  }
+  .next7-calendar-day {
+      background: #fff;
+      border: 1px solid #d8deea;
+      border-radius: 9px;
+      color: #475569;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 650;
+      padding: 8px 12px;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .next7-calendar-day:hover,
+  .next7-calendar-day.is-active {
+      background: #fff4f2;
+      border-color: #e8aaa5;
+      color: #a71912;
+  }
+
+  .calendar-panel .btn-primary {
+      background: var(--board-accent);
+      border-color: var(--board-accent);
+      border-radius: 8px;
+      box-shadow: none;
+      font-size: 12px;
+      font-weight: 600;
+  }
+
+  .calendar-panel #select-day {
+      background: #fff;
+      border-color: #d6dae2;
+      color: #344054;
+  }
+
+  .calendar-panel #select-day-menu {
+      border: 1px solid var(--board-line) !important;
+      border-radius: 10px;
+      overflow: hidden;
+  }
+
+  .calendar-panel .drop-zone {
+      background-color: #f0f9ff !important;
+      border-right-color: #d6eefc !important;
+      transition: background-color 120ms ease, box-shadow 120ms ease;
+  }
+
+  .calendar-panel .drop-zone:hover {
+      background-color: #dff3ff !important;
+      box-shadow: inset 0 0 0 1px #7dd3fc;
+  }
+
+  .calendar-panel .drop-zone.drop-hover {
+      background-color: #dcfce7 !important;
+      border-right-color: #86efac !important;
+      box-shadow: inset 0 0 0 2px #22c55e;
+  }
+
+  .calendar-panel .card-body > .row > .col-4 {
+      background: #fbfcfe;
+      border-bottom-color: var(--board-line) !important;
+      border-right-color: var(--board-line) !important;
+      min-height: 62px;
+      padding-bottom: 8px;
+      padding-top: 8px;
+  }
+
+  .calendar-panel .card-body > .row > .col-8 {
+      border-bottom: 1px solid var(--board-line);
+      min-height: 62px;
+      padding-left: 0;
+      padding-right: 0;
+  }
+
+  .calendar-panel .card-body > .row > .col-4:first-child,
+  .calendar-panel .card-body > .row > .col-8:nth-child(2) {
+      background: #f8fafc;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 700;
+      min-height: 36px;
+      padding-bottom: 7px;
+      padding-top: 7px;
+      text-transform: uppercase;
+  }
+
+  .schedule-user-avatar {
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  }
+
+  .schedule-user-details {
+      color: var(--board-ink);
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+
+  .schedule-user-details small {
+      color: var(--board-muted);
+      display: block;
+      font-weight: 400;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+
+  .schedule-user-percentage {
+      background: #f2f4f7;
+      border-radius: 999px;
+      color: #475467;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 7px;
+  }
+
+  .maintenance-inline-detail-wrapper {
+      margin-top: 16px;
+  }
+
+  .maintenance-inline-detail-wrapper .card-body {
+      background: #fff;
+      border-radius: 0 0 14px 14px;
+      padding: 18px;
+  }
+
+  .maintenance-inline-panel .nav-tabs {
+      border-bottom-color: var(--board-line);
+  }
+
+  .maintenance-inline-panel .nav-link {
+      border-radius: 8px 8px 0 0;
+      color: var(--board-muted);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+  }
+
+  .maintenance-inline-panel .nav-link.active {
+      color: var(--board-accent);
+  }
+
+  .maintenance-request-dot {
+      background: #dc3545;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: inline-block;
+      height: 8px;
+      margin-left: 6px;
+      vertical-align: 1px;
+      width: 8px;
+  }
+
+  .maintenance-details-overlay {
+      align-items: center;
+      backdrop-filter: blur(3px);
+      background: rgba(15, 23, 42, 0.48);
+      display: flex;
+      inset: 0;
+      justify-content: center;
+      padding: 24px;
+      position: fixed;
+      z-index: 1060;
+  }
+
+  .maintenance-details-overlay.d-none {
+      display: none !important;
+  }
+
+  .maintenance-details-dialog {
+      animation: maintenance-details-enter 160ms ease-out;
+      background: #fff;
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+      display: flex;
+      flex-direction: column;
+      height: min(86vh, 820px);
+      margin: 0;
+      /* OLD: max-height alone allowed the dialog to shrink with each tab content. */
+      max-height: min(86vh, 820px);
+      max-width: 1080px;
+      overflow: hidden;
+      width: 100%;
+  }
+
+  .maintenance-details-dialog .card-header {
+      align-items: center;
+      display: flex;
+      flex: 0 0 auto;
+      justify-content: space-between;
+  }
+
+  .maintenance-details-dialog .card-body {
+      /* OLD: max-height: calc(min(86vh, 820px) - 82px); */
+      /* OLD: overflow-y: auto; */
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+  }
+
+  .maintenance-details-dialog .maintenance-inline-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+  }
+
+  .maintenance-details-dialog .maintenance-inline-panel > .nav-tabs {
+      flex: 0 0 auto;
+  }
+
+  .maintenance-details-dialog .maintenance-inline-panel > .tab-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+  }
+
+  .maintenance-detail-subtitle {
+      color: var(--board-muted);
+      font-size: 12px;
+      margin-top: 3px;
+  }
+
+  .maintenance-detail-close {
+      align-items: center;
+      background: #f2f4f7;
+      border: 0;
+      border-radius: 50%;
+      color: #475467;
+      display: flex;
+      font-size: 20px;
+      height: 36px;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      width: 36px;
+  }
+
+  .maintenance-detail-close:hover {
+      background: #eaecf0;
+      color: var(--board-accent);
+  }
+
+  .maintenance-detail-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 16px;
+  }
+
+  .maintenance-detail-field {
+      background: #f8fafc;
+      border: 1px solid #edf0f4;
+      border-radius: 10px;
+      min-width: 0;
+      padding: 11px 12px;
+  }
+
+  .maintenance-detail-field-label {
+      color: var(--board-muted);
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+  }
+
+  .maintenance-detail-field-value {
+      color: var(--board-ink);
+      font-size: 13px;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+  }
+
+  /* Refined visit-details dialog: clearer identity, tabs, and readable content. */
+  .maintenance-details-overlay {
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      background: rgba(15, 23, 42, .56);
+      padding: clamp(12px, 3vh, 28px);
+  }
+  .maintenance-details-dialog {
+      background: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-radius: 20px;
+      box-shadow: 0 32px 90px rgba(15, 23, 42, .32), 0 4px 14px rgba(15, 23, 42, .08);
+      height: min(88vh, 900px);
+      max-height: min(88vh, 900px);
+      max-width: 1180px;
+  }
+  .maintenance-details-dialog .maintenance-details-header {
+      background: linear-gradient(120deg, #fff 0%, #fbfcfe 100%);
+      border-bottom: 1px solid #e8edf3;
+      border-radius: 20px 20px 0 0;
+      min-height: 96px;
+      padding: 20px 26px;
+  }
+  .maintenance-details-header .board-eyebrow {
+      color: #b42318;
+      font-size: 10px;
+      letter-spacing: .12em;
+      margin-bottom: 5px;
+  }
+  .maintenance-detail-heading-row {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+  }
+  .maintenance-details-header .board-section-title {
+      color: #172033;
+      font-size: clamp(18px, 2vw, 23px);
+      letter-spacing: -.025em;
+      line-height: 1.25;
+  }
+  .maintenance-detail-subtitle {
+      color: #667085;
+      font-size: 12px;
+      margin-top: 5px;
+      max-width: min(70vw, 780px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+  .maintenance-detail-status {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 999px;
+      color: #b54708;
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 7px 10px;
+      white-space: nowrap;
+  }
+  .maintenance-detail-status[hidden] { display: none !important; }
+  .maintenance-detail-status[data-status*="completed"] {
+      background: #ecfdf3;
+      border-color: #abefc6;
+      color: #067647;
+  }
+  .maintenance-detail-status[data-status*="progress"] {
+      background: #eff8ff;
+      border-color: #b2ddff;
+      color: #175cd3;
+  }
+  .maintenance-details-dialog .maintenance-detail-close {
+      background: #f2f4f7;
+      border: 1px solid #e4e7ec;
+      flex: 0 0 38px;
+      height: 38px;
+      transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+      width: 38px;
+  }
+  .maintenance-details-dialog .maintenance-detail-close:hover {
+      background: #fff1f0;
+      border-color: #fecdca;
+      color: #b42318;
+      transform: rotate(90deg);
+  }
+  .maintenance-details-dialog .card-body {
+      background: #f8fafc;
+      padding: 0;
+  }
+  .maintenance-details-dialog .maintenance-inline-panel > .nav-tabs {
+      background: #fff;
+      border-bottom: 1px solid #e7eaf0;
+      gap: 5px;
+      padding: 10px 18px 0;
+      scrollbar-width: thin;
+  }
+  .maintenance-details-dialog .maintenance-inline-panel .nav-link {
+      border: 1px solid transparent;
+      border-radius: 10px 10px 0 0;
+      color: #667085;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: -1px;
+      padding: 10px 12px 11px;
+      transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  }
+  .maintenance-details-dialog .maintenance-inline-panel .nav-link:hover {
+      background: #f8fafc;
+      color: #344054;
+  }
+  .maintenance-details-dialog .maintenance-inline-panel .nav-link.active {
+      background: #fff;
+      border-color: #e7eaf0 #e7eaf0 #fff;
+      color: #b42318;
+      box-shadow: 0 -2px 0 #b42318 inset;
+  }
+  .maintenance-details-dialog .maintenance-inline-panel > .tab-content {
+      padding: 22px 24px 28px;
+  }
+  .maintenance-details-dialog .maintenance-detail-grid {
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 14px;
+  }
+  .maintenance-details-dialog .maintenance-detail-field {
+      background: #fff;
+      border: 1px solid #e8edf3;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(16, 24, 40, .025);
+      padding: 13px 14px;
+      transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  }
+  .maintenance-details-dialog .maintenance-detail-field:hover {
+      border-color: #d5dce7;
+      box-shadow: 0 5px 14px rgba(16, 24, 40, .06);
+      transform: translateY(-1px);
+  }
+  .maintenance-details-dialog .maintenance-detail-field-label {
+      color: #7b8798;
+      font-size: 10px;
+      letter-spacing: .075em;
+      margin-bottom: 6px;
+  }
+  .maintenance-details-dialog .maintenance-detail-field-value {
+      color: #1d2939;
+      display: inline-block;
+      font-size: 13px;
+      line-height: 1.5;
+  }
+  .maintenance-details-dialog .maintenance-description-value {
+      display: block;
+      font-weight: 400;
+      line-height: 1.7;
+  }
+  .maintenance-details-dialog .maintenance-description-value p {
+      margin: 0 0 8px;
+  }
+  .maintenance-details-dialog .maintenance-description-value p:last-child {
+      margin-bottom: 0;
+  }
+  .maintenance-details-dialog .maintenance-description-value ul,
+  .maintenance-details-dialog .maintenance-description-value ol {
+      margin: 0 0 8px;
+      padding-left: 20px;
+  }
+  .maintenance-details-dialog .maintenance-detail-field-value[href] {
+      color: #175cd3;
+      text-decoration: none;
+  }
+  .maintenance-details-dialog .maintenance-detail-field-value[href]:hover { text-decoration: underline; }
+  .maintenance-details-dialog .tab-pane > .maintenance-detail-field { margin-top: 12px; }
+  .maintenance-details-dialog .tab-content table {
+      background: #fff;
+      border: 1px solid #e5e9f0;
+      border-radius: 10px;
+      overflow: hidden;
+  }
+  .maintenance-details-dialog .tab-content table th {
+      background: #f8fafc;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+  }
+  .maintenance-details-dialog .tab-content table td { vertical-align: middle; }
+  .maintenance-details-dialog .maintenance-inline-empty {
+      background: #fff;
+      border: 1px dashed #d0d5dd;
+      border-radius: 12px;
+      color: #667085;
+      margin: 8px 0;
+      padding: 34px 20px;
+  }
+
+  body.maintenance-details-open {
+      overflow: hidden;
+  }
+
+  #calendar-technician-filter {
+      max-width: 270px;
+      min-width: 245px;
+  }
+
+  .technician-day-visit-panel {
+      background: #fff;
+      border: 1px solid #e5e9f0;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      margin-top: 10px;
+      padding: 14px 16px;
+  }
+
+  .technician-day-visit-panel[hidden] { display: none !important; }
+  .technician-day-visit-list {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      max-height: 230px;
+      overflow-y: auto;
+  }
+  .technician-day-visit-card {
+      align-items: flex-start;
+      background: #f8fafc;
+      border: 1px solid #edf0f4;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+      min-width: 0;
+      padding: 10px;
+  }
+  .technician-day-visit-number {
+      align-items: center;
+      background: #eaf2ff;
+      border-radius: 50%;
+      color: #175cd3;
+      display: inline-flex;
+      flex: 0 0 28px;
+      font-size: 12px;
+      font-weight: 700;
+      height: 28px;
+      justify-content: center;
+  }
+  .technician-day-visit-content { min-width: 0; }
+  .technician-day-visit-content a { font-weight: 700; }
+  .technician-day-visit-meta {
+      color: var(--board-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+  }
+  .technician-day-visit-address { white-space: pre-line; }
+  .schedule-board-workspace {
+      --board-map-width: 40vw;
+      min-width: 0;
+  }
+  .schedule-board-workspace.is-map-open {
+      display: grid;
+      gap: 0;
+      grid-template-columns: minmax(0, 1fr);
+  }
+  .schedule-board-workspace.is-map-open .schedule-board-canvas {
+      min-width: 0;
+  }
+  .expedition-board-map-section {
+      background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #dfe6ef;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
+      display: flex;
+      flex-direction: column;
+      margin: 14px 12px 24px;
+      min-width: 0;
+      overflow: hidden;
+      padding: 14px;
+      position: relative;
+  }
+  .expedition-board-map-section[hidden] { display: none !important; }
+  .expedition-board-map-header {
+      align-items: center;
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid #e5eaf1;
+      border-radius: 12px;
+      flex: 0 0 auto;
+      min-height: 44px;
+      padding: 13px 48px 13px 16px;
+      position: relative;
+  }
+  .map-header-actions { margin-left: auto; }
+  .map-date-range-toolbar {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #e5eaf1;
+      border-radius: 12px;
+      display: flex;
+      flex: 0 0 auto;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: space-between;
+      margin: 8px 0;
+      padding: 8px 10px;
+  }
+  .map-date-range-label {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 5px;
+  }
+  .map-date-range-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .map-date-range-button {
+      background: #f8fafc;
+      border: 1px solid #dbe3ee;
+      border-radius: 8px;
+      color: #475569;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 650;
+      min-height: 32px;
+      padding: 5px 10px;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .map-date-range-button:hover { background: #fef2f2; border-color: #f2b8b5; color: #a71912; }
+  .map-date-range-button[aria-pressed="true"] {
+      background: #b42318;
+      border-color: #b42318;
+      color: #fff;
+  }
+  .map-date-range-summary { color: #64748b; font-size: 12px; white-space: nowrap; }
+  .map-technician-search {
+      align-items: center;
+      display: flex;
+      gap: 6px;
+      margin-left: 16px;
+      min-width: min(330px, 38vw);
+  }
+  .map-technician-search input {
+      background: #fff;
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      color: #1e293b;
+      font-size: 13px;
+      min-width: 0;
+      outline: 0;
+      padding: 7px 10px;
+      width: 100%;
+  }
+  .map-technician-search input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+  }
+  .map-technician-search input[aria-invalid="true"] {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, .12);
+  }
+  .map-technician-search button {
+      align-items: center;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      color: #1d4ed8;
+      cursor: pointer;
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      min-height: 34px;
+      padding: 0 10px;
+  }
+  .map-technician-search button:hover { background: #dbeafe; }
+  .map-visit-type-filters {
+      align-items: center;
+      border-top: 1px solid #edf0f5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+      padding-top: 10px;
+  }
+  /* Once the map is mounted the layer controls are moved into its host. This
+     keeps them available without consuming panel height. */
+  .expedition-board-map-host > .map-visit-type-filters {
+      align-items: center;
+      background: rgba(37, 55, 82, .94);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, .38);
+      border-radius: 14px;
+      bottom: 18px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .32);
+      left: 50%;
+      margin: 0;
+      max-height: min(30%, 158px);
+      max-width: min(680px, calc(100% - 32px));
+      overflow: auto;
+      padding: 8px 10px;
+      position: absolute;
+      top: auto;
+      transform: translateX(-50%);
+      width: fit-content;
+      z-index: 30;
+  }
+  .expedition-board-map-host > .map-visit-type-filters { cursor: grab; touch-action: none; user-select: none; }
+  .expedition-board-map-host > .map-visit-type-filters.is-dragging { cursor: grabbing; }
+  .expedition-board-map-host > .map-visit-type-filters #map-visit-type-filter-options {
+      display: flex;
+      flex: 0 1 auto;
+      flex-wrap: wrap;
+      gap: 6px !important;
+  }
+  .expedition-board-map-host > .map-visit-type-filters .map-visit-type-label {
+      background: transparent;
+      color: #dbeafe;
+      padding: 3px 0;
+      text-shadow: none;
+  }
+  .expedition-board-map-host > .map-visit-type-filters .map-visit-type-filter {
+      background: rgba(255, 255, 255, .1);
+      border-color: rgba(226, 232, 240, .28);
+      color: #f8fafc;
+      font-size: 11px;
+      line-height: 1.25;
+      max-width: min(300px, 100%);
+      overflow: visible;
+      padding: 4px 8px;
+      text-align: left;
+      touch-action: manipulation;
+      text-overflow: clip;
+      white-space: normal;
+  }
+  .expedition-board-map-host > .map-visit-type-filters .map-visit-type-filter:hover {
+      background: rgba(255, 255, 255, .19);
+      border-color: rgba(255, 255, 255, .55);
+  }
+  .expedition-board-map-host > .map-visit-type-filters .map-visit-type-filter[aria-pressed="false"] {
+      color: #cbd5e1;
+  }
+  .map-visit-type-label {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .04em;
+      margin-right: 2px;
+      text-transform: uppercase;
+  }
+  .map-visit-type-filter {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #dbe2ea;
+      border-radius: 999px;
+      color: #334155;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 650;
+      gap: 6px;
+      max-width: 220px;
+      overflow: hidden;
+      padding: 5px 9px;
+      text-overflow: ellipsis;
+      transition: background .15s ease, border-color .15s ease, opacity .15s ease;
+      white-space: nowrap;
+  }
+  .map-visit-type-filter:hover { background: #f8fafc; border-color: #94a3b8; }
+  .map-visit-type-filter[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+  .map-visit-type-colour {
+      background: var(--visit-type-colour, #64748b);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 0 3px var(--visit-type-colour, #64748b);
+      flex: 0 0 7px;
+      height: 7px;
+      width: 7px;
+  }
+  .technician-live-location-status {
+      align-items: center;
+      background: #f1f5f9;
+      border-radius: 999px;
+      color: #475569;
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 650;
+      gap: 7px;
+      line-height: 1.35;
+      margin-top: 6px;
+      max-width: 100%;
+      padding: 5px 9px;
+  }
+  .technician-live-location-status::before {
+      background: #94a3b8;
+      border-radius: 50%;
+      content: "";
+      flex: 0 0 7px;
+      height: 7px;
+  }
+  .technician-live-location-status[data-state="live"] { background: #ecfdf5; color: #047857; }
+  .technician-live-location-status[data-state="live"]::before { background: #10b981; }
+  .technician-live-location-status[data-state="stale"] { background: #fff7ed; color: #b45309; }
+  .technician-live-location-status[data-state="stale"]::before { background: #f59e0b; }
+  .technician-live-location-status[data-state="demo"] { background: #f5f3ff; color: #6d28d9; }
+  .technician-live-location-status[data-state="demo"]::before { background: #8b5cf6; }
+  .technician-live-location-status[data-state="error"] { background: #fef2f2; color: #b91c1c; }
+  .technician-live-location-status[data-state="error"]::before { background: #ef4444; }
+  .schedule-board-workspace.is-map-open .expedition-board-map-header { cursor: grab; touch-action: none; user-select: none; }
+  .schedule-board-workspace.is-map-open .expedition-board-map-header input { cursor: text; touch-action: manipulation; user-select: text; }
+  .schedule-board-workspace.is-map-open .expedition-board-map-header:active { cursor: grabbing; }
+  .expedition-board-map-close { cursor: pointer; touch-action: manipulation; }
+  .expedition-board-map-close {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      color: #475569;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 16px;
+      font-weight: 700;
+      height: 28px;
+      justify-content: center;
+      line-height: 1;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 28px;
+  }
+  .expedition-board-map-close:hover {
+      background: #fff5f4;
+      border-color: #b42318;
+      color: #b42318;
+  }
+  .expedition-board-map-host {
+      background: #dbeafe;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+      overflow: hidden;
+      position: relative;
+  }
+
+
+  .live-location-modal.modal {
+      align-items: center;
+      background: rgba(15, 23, 42, .52);
+      display: flex;
+      inset: 0;
+      justify-content: center;
+      max-height: none;
+      overflow: auto;
+      padding: 18px;
+      position: fixed;
+      z-index: 1060;
+  }
+  .live-location-modal.modal.hide { display: none; }
+  .live-location-modal .modal-dialog {
+      margin: auto !important;
+      max-width: 1240px !important;
+      width: min(1240px, calc(100vw - 36px));
+  }
+  .live-location-modal .modal-content {
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .3);
+      height: auto !important;
+      max-height: calc(100vh - 36px);
+      overflow: hidden;
+  }
+  .live-location-modal .modal-header {
+      align-items: flex-start;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 50px 12px 20px;
+      position: relative;
+  }
+  .live-location-modal .modal-header .modal-title {
+      color: #a80707;
+      font-size: 20px;
+      font-weight: 750;
+  }
+  .live-location-modal .modal-header p {
+      color: #667085;
+      font-size: 12px;
+      line-height: 1.55;
+      margin: 7px 0 0;
+  }
+  .live-location-modal .modal-header .close {
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      color: #475467;
+      display: inline-flex;
+      font-size: 18px;
+      height: 28px;
+      justify-content: center;
+      line-height: 1;
+      margin: 0;
+      opacity: 1;
+      padding: 0;
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      width: 28px;
+  }
+  .live-location-modal .modal-header .close:hover {
+      background: #fff5f4;
+      border-color: #b42318;
+      color: #b42318;
+  }
+  .live-location-modal .modal-body {
+      background: #f8fafc;
+      padding: 12px;
+  }
+  .live-location-modal #live-map-container {
+      border: 1px solid #dbe2ea;
+      border-radius: 12px;
+      overflow: hidden;
+  }
+  .board-map-resizer {
+      background: transparent;
+      border-radius: 999px;
+      cursor: col-resize;
+      display: none;
+      position: relative;
+      touch-action: none;
+      user-select: none;
+      z-index: 1;
+  }
+  .board-map-resizer:hover,
+  .board-map-resizer:focus,
+  .board-map-resizer.is-resizing { background: rgba(37, 99, 235, .06); outline: none; }
+  .board-map-resizer::before {
+      background-color: #fff;
+      background-image: radial-gradient(circle, #98a2b3 1px, transparent 1.2px);
+      background-position: center;
+      background-size: 5px 6px;
+      border: 1px solid #d0d5dd;
+      border-radius: 99px;
+      content: "";
+      box-shadow: 0 2px 8px rgba(16, 24, 40, .12);
+      height: 48px;
+      left: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+      width: 9px;
+  }
+  .board-map-resizer:hover::before,
+  .board-map-resizer:focus-visible::before,
+  .board-map-resizer.is-resizing::before { background-color: #eff6ff; border-color: #84adff; box-shadow: 0 3px 12px rgba(37, 99, 235, .2); }
+  .board-map-resizer::after { content: ""; inset: 0 -10px; position: absolute; }
+  .board-map-floating-resize {
+      background: transparent;
+      display: none;
+      position: absolute;
+      touch-action: none;
+      z-index: 5;
+  }
+  .board-map-floating-resize:hover,
+  .board-map-floating-resize.is-resizing { background: transparent; }
+  .board-map-floating-resize-x {
+      bottom: 12px;
+      cursor: ew-resize;
+      left: 0;
+      top: 56px;
+      width: 8px;
+  }
+  .board-map-floating-resize-x::before {
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 999px;
+      box-shadow: 0 1px 6px rgba(16, 24, 40, .14);
+      content: "";
+      height: 42px;
+      left: 2px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+  }
+  .board-map-floating-resize-x:hover::before,
+  .board-map-floating-resize-x.is-resizing::before { background: #dbeafe; border-color: #60a5fa; }
+  .board-map-floating-resize-y {
+      bottom: 0;
+      cursor: ns-resize;
+      left: 12px;
+      right: 12px;
+      height: 8px;
+  }
+  .board-map-floating-resize-y::before {
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 999px;
+      box-shadow: 0 1px 6px rgba(16, 24, 40, .14);
+      content: "";
+      height: 4px;
+      left: 50%;
+      position: absolute;
+      top: 2px;
+      transform: translateX(-50%);
+      width: 42px;
+  }
+  .board-map-floating-resize-y:hover::before,
+  .board-map-floating-resize-y.is-resizing::before { background: #dbeafe; border-color: #60a5fa; }
+  .board-map-floating-resize-corner {
+      bottom: 0;
+      cursor: nwse-resize;
+      height: 18px;
+      right: 0;
+      width: 18px;
+  }
+  .board-map-floating-move {
+      align-items: center;
+      background: rgba(255, 255, 255, .96);
+      border: 1px solid #d0d5dd;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(16, 24, 40, .16);
+      color: #667085;
+      cursor: move;
+      display: none;
+      height: 48px;
+      justify-content: center;
+      left: 8px;
+      position: absolute;
+      top: 50%;
+      touch-action: none;
+      transform: translateY(-50%);
+      user-select: none;
+      width: 24px;
+      z-index: 6;
+  }
+  .board-map-floating-move:hover,
+  .board-map-floating-move:focus-visible { background: #eff6ff; border-color: #84adff; color: #175cd3; outline: none; }
+  .board-map-floating-move::before {
+      background-image: radial-gradient(circle, currentColor 1.35px, transparent 1.6px);
+      background-size: 6px 7px;
+      content: "";
+      height: 22px;
+      width: 12px;
+  }
+  .schedule-board-map-toggle {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #d9e0ea;
+      border-radius: 9px;
+      color: #475569;
+      cursor: pointer;
+      display: inline-flex;
+      height: 36px;
+      justify-content: center;
+      padding: 0;
+      width: 40px;
+  }
+  .schedule-board-map-toggle:hover,
+  .schedule-board-map-toggle[aria-expanded="true"] {
+      background: #fff5f4;
+      border-color: #b42318;
+      color: #b42318;
+  }
+  .schedule-board-map-toggle:focus-visible {
+      box-shadow: 0 0 0 3px rgba(180, 35, 24, .16);
+      outline: none;
+  }
+  .expedition-board-map-host {
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+  }
+  .visit-calendar-resizer {
+      align-self: stretch;
+      background: transparent;
+      border-radius: 6px;
+      cursor: row-resize;
+      display: none;
+      flex: 0 0 12px;
+      position: relative;
+      touch-action: none;
+      user-select: none;
+  }
+  .visit-calendar-resizer::before {
+      background-color: #fff;
+      background-image: radial-gradient(circle, #98a2b3 1px, transparent 1.2px);
+      background-position: center;
+      background-size: 6px 5px;
+      border: 1px solid #d0d5dd;
+      border-radius: 99px;
+      content: "";
+      box-shadow: 0 2px 8px rgba(16, 24, 40, .1);
+      height: 8px;
+      left: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+      width: 48px;
+  }
+  .visit-calendar-resizer:hover,
+  .visit-calendar-resizer:focus,
+  .visit-calendar-resizer.is-resizing {
+      background: rgba(37, 99, 235, .06);
+      outline: none;
+  }
+  .visit-calendar-resizer:hover::before,
+  .visit-calendar-resizer:focus-visible::before,
+  .visit-calendar-resizer.is-resizing::before { background-color: #eff6ff; border-color: #84adff; box-shadow: 0 3px 12px rgba(37, 99, 235, .18); }
+  .visit-calendar-resizer::after {
+      content: "";
+      inset: -10px 0;
+      position: absolute;
+  }
+  .schedule-user-row.calendar-technician-select {
+      cursor: pointer;
+      border-radius: 8px;
+  }
+  .schedule-user-row.calendar-technician-select:hover,
+  .schedule-user-row.calendar-technician-select:focus {
+      background: #f2f7ff;
+      outline: 2px solid #84adff;
+      outline-offset: 1px;
+  }
+
+  @media (min-width: 1101px) and (min-height: 720px) {
+      /* OLD: the selected technician list expanded beneath the calendar. */
+      .calendar-section.technician-visits-open {
+          align-items: stretch;
+          display: flex;
+          flex-direction: row;
+          gap: 12px;
+          overflow: hidden !important;
+      }
+      .calendar-section.technician-visits-open .calendar-panel.card {
+          flex: 1 1 0;
+          height: 100%;
+          min-width: 0;
+      }
+      .calendar-section.technician-visits-open .technician-day-visit-panel {
+          display: flex;
+          flex: 0 0 var(--technician-panel-width, 330px);
+          flex-direction: column;
+          margin-top: 0;
+          max-height: 100%;
+          min-width: 0;
+          overflow: hidden;
+      }
+      .technician-panel-resizer {
+          align-self: stretch;
+          background: transparent;
+          border-radius: 6px;
+          cursor: col-resize;
+          flex: 0 0 8px;
+          position: relative;
+          touch-action: none;
+          user-select: none;
+      }
+      .technician-panel-resizer::before {
+          background-color: #fff;
+          background-image: radial-gradient(circle, #98a2b3 1px, transparent 1.2px);
+          background-position: center;
+          background-size: 5px 6px;
+          border: 1px solid #d0d5dd;
+          border-radius: 99px;
+          content: "";
+          box-shadow: 0 2px 8px rgba(16, 24, 40, .1);
+          height: 48px;
+          left: 50%;
+          position: absolute;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+          width: 9px;
+      }
+      .technician-panel-resizer:hover,
+      .technician-panel-resizer:focus,
+      .technician-panel-resizer.is-resizing {
+          background: rgba(37, 99, 235, .06);
+          outline: none;
+      }
+      .technician-panel-resizer:hover::before,
+      .technician-panel-resizer:focus-visible::before,
+      .technician-panel-resizer.is-resizing::before { background-color: #eff6ff; border-color: #84adff; box-shadow: 0 3px 12px rgba(37, 99, 235, .18); }
+      .technician-panel-resizer::after {
+          content: "";
+          inset: 0 -10px;
+          position: absolute;
+      }
+      .calendar-section.technician-visits-open .technician-day-visit-list {
+          display: flex;
+          flex: 1 1 auto;
+          flex-direction: column;
+          grid-template-columns: none;
+          max-height: none;
+          overflow-y: auto;
+      }
+  }
+
+  @media (min-width: 1180px) {
+      .schedule-board-workspace.is-map-open {
+          grid-template-columns: minmax(560px, 1fr) 8px minmax(380px, var(--board-map-width, 40vw));
+      }
+      .schedule-board-workspace.is-map-open .schedule-board-canvas {
+          height: calc(100vh - 125px);
+          min-height: min(680px, calc(100vh - 125px));
+      }
+      .schedule-board-workspace.is-map-open .board-map-resizer { display: block; }
+      .schedule-board-workspace.is-map-open .expedition-board-map-section {
+          height: calc(100vh - 125px);
+          margin: 12px 12px 12px 0;
+      }
+  }
+
+  @media (max-width: 1179px) {
+      .schedule-board-workspace.is-map-open .expedition-board-map-section {
+          box-shadow: 0 18px 48px rgba(15, 23, 42, .24);
+          bottom: 12px;
+          height: min(70vh, 620px);
+          left: 12px;
+          margin: 0;
+          position: fixed;
+          right: 12px;
+          top: auto;
+          width: auto;
+          z-index: 1050;
+      }
+      .schedule-board-workspace.is-map-open .expedition-board-map-host { min-height: 240px; }
+  }
+  .schedule-board-workspace.is-map-floating { display: block; }
+  .schedule-board-workspace.is-map-floating .expedition-board-map-section {
+      inset: auto !important;
+      margin: 0;
+      position: fixed;
+      z-index: 1060;
+  }
+  .schedule-board-workspace.is-map-floating .expedition-board-map-host { min-height: 0; }
+  .schedule-board-workspace.is-map-floating .board-map-floating-resize-y,
+  .schedule-board-workspace.is-map-floating .board-map-floating-resize-x,
+  .schedule-board-workspace.is-map-floating .board-map-floating-resize-corner { display: block; }
+  .schedule-board-workspace.is-map-open .board-map-floating-move { display: inline-flex; }
+
+  @media (max-width: 1100px) {
+      .technician-panel-resizer { display: none !important; }
+  }
+
+  /* The queue controls must never overflow when the map is floating over a
+     narrower board. Keep the title and controls in two intentional rows. */
+  @media (max-width: 1450px) {
+      .visit-list-toolbar {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 10px;
+      }
+      .visit-list-toolbar > div:first-child { min-width: 0; }
+      .visit-filter-group {
+          flex-wrap: wrap;
+          justify-content: flex-start;
+      }
+  }
+
+  /* A docked map reduces the queue column even on a wide monitor. Give its
+     filters their own compact grid instead of letting controls bleed into the
+     adjacent map panel. The same layout remains stable after the map is moved. */
+  .schedule-board-workspace.is-map-open .visit-list-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 10px;
+  }
+  .schedule-board-workspace.is-map-open .visit-list-toolbar > div:first-child {
+      min-width: 0;
+  }
+  .schedule-board-workspace.is-map-open .visit-filter-group {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: stretch;
+      width: 100%;
+  }
+  .schedule-board-workspace.is-map-open .visit-filter-group > * { min-width: 0; }
+  .schedule-board-workspace.is-map-open .visit-search-wrap,
+  .schedule-board-workspace.is-map-open .visit-filter-control,
+  .schedule-board-workspace.is-map-open .visit-search-wrap .visit-filter-control,
+  .schedule-board-workspace.is-map-open #visit-status-filter,
+  .schedule-board-workspace.is-map-open #visit-type-filter,
+  .schedule-board-workspace.is-map-open #visit-assignment-filter,
+  .schedule-board-workspace.is-map-open #visit-territory-filter {
+      min-width: 0;
+      width: 100%;
+  }
+  .schedule-board-workspace.is-map-open .visible-visit-count {
+      align-self: center;
+      grid-column: 1 / -1;
+      justify-self: start;
+      max-width: 100%;
+  }
+
+  /* Bootstrap display utility classes can override each other depending on
+     stylesheet order. This board-specific class always hides both halves of a
+     filtered technician row, keeping the user and timeline columns paired. */
+  .calendar-technician-entry.calendar-technician-hidden {
+      display: none !important;
+  }
+
+  /* Compact desktop mode keeps the visit queue and calendar in one viewport.
+     Overflow stays inside the relevant list when the available height is low. */
+  @media (min-width: 1101px) and (min-height: 720px) {
+      .schedule-board-canvas {
+          height: calc(100vh - 125px);
+          min-height: min(680px, calc(100vh - 125px));
+          overflow: hidden;
+          padding: 12px;
+      }
+
+      .board-sections-stack {
+          align-content: stretch;
+          flex-direction: column;
+          flex-wrap: nowrap;
+          height: 100%;
+      }
+
+      .visits-panel {
+          display: flex;
+          flex: 0 0 var(--visits-panel-height, 297px);
+          flex-direction: column;
+          min-height: 0;
+          padding: 12px;
+      }
+
+      #maintenance-tab-body {
+          display: flex;
+          flex: 1 1 auto;
+          flex-direction: column;
+          min-height: 0;
+      }
+
+      .visit-calendar-resizer { display: block; }
+
+      .visit-list-toolbar {
+          margin-bottom: 8px;
+      }
+
+      .horizontal-visit-list {
+          /* OLD: max-height: 200px left unused space when the visit panel was enlarged. */
+          flex: 1 1 auto;
+          max-height: none;
+          min-height: 0;
+      }
+
+      .horizontal-visit-header {
+          padding-bottom: 7px;
+          padding-top: 7px;
+      }
+
+      .horizontal-visit-row {
+          min-height: 52px;
+          padding-bottom: 7px;
+          padding-top: 7px;
+      }
+
+      .calendar-section {
+          flex: 1 1 auto;
+          margin-top: 0 !important;
+          min-height: 0;
+          overflow: hidden !important;
+      }
+
+      .calendar-panel.card {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          overflow: hidden;
+      }
+
+      .calendar-panel .card-header {
+          flex: 0 0 auto;
+          padding: 10px 14px;
+      }
+
+      .calendar-panel .card-body {
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          padding: 10px;
+      }
+
+      .calendar-guidance {
+          margin-bottom: 8px;
+          padding: 6px 10px;
+      }
+
+      .calendar-panel .card-body > .row > .col-4,
+      .calendar-panel .card-body > .row > .col-8 {
+          min-height: 48px;
+      }
+
+      .calendar-panel .card-body > .row > .col-4 {
+          padding-bottom: 4px;
+          padding-top: 4px;
+      }
+
+      .calendar-panel .card-body > .row > .col-4:first-child,
+      .calendar-panel .card-body > .row > .col-8:nth-child(2) {
+          min-height: 32px;
+          padding-bottom: 5px;
+          padding-top: 5px;
+      }
+
+      .calendar-panel .schedule-user-row {
+          grid-template-columns: 40px minmax(0, 1fr) 62px;
+          min-height: 40px;
+      }
+
+      .calendar-panel .schedule-user-avatar-slot {
+          height: 40px;
+          padding-bottom: 0;
+          width: 40px;
+      }
+
+      .calendar-panel .schedule-user-avatar {
+          height: 38px;
+          width: 38px;
+      }
+
+      /* The standard board should follow its content instead of stretching the
+         calendar into an empty viewport-sized card. The docked map keeps the
+         fixed-height planning workspace defined above. */
+      .schedule-board-workspace:not(.is-map-open) .schedule-board-canvas {
+          height: auto;
+          min-height: 0;
+          overflow: visible;
+      }
+
+      .schedule-board-workspace:not(.is-map-open) .board-sections-stack {
+          height: auto;
+      }
+
+      .schedule-board-workspace:not(.is-map-open) .visits-panel {
+          flex-basis: var(--visits-panel-height, 380px);
+      }
+
+      .schedule-board-workspace:not(.is-map-open) .calendar-section {
+          flex: 0 0 auto;
+          overflow: visible !important;
+      }
+
+      .schedule-board-workspace:not(.is-map-open) .calendar-panel.card {
+          height: auto;
+      }
+
+      .schedule-board-workspace:not(.is-map-open) .calendar-panel .card-body {
+          flex: 0 1 auto;
+          max-height: min(58vh, 620px);
+          overflow-y: auto;
+      }
+  }
+
+  @keyframes maintenance-details-enter {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @media (max-width: 1100px) {
+      .visit-calendar-resizer { display: none !important; }
+      .visit-list-toolbar {
+          align-items: stretch;
+          flex-direction: column;
+      }
+
+      .visit-list-toolbar > div:first-child {
+          min-width: 0;
+      }
+
+      .visit-filter-group {
+          flex-wrap: wrap;
+          justify-content: flex-start;
+      }
+  }
+
+  @media (max-width: 640px) {
+      .schedule-board-canvas { padding: 10px; }
+      .visit-summary-grid { grid-template-columns: 1fr 1fr; }
+      .visit-summary-card { min-height: 76px; padding: 12px; }
+      .visit-summary-icon { flex-basis: 38px; height: 38px; }
+      .visit-summary-value { font-size: 23px; }
+      .visit-filter-control,
+      .visit-search-wrap,
+      .visit-search-wrap .visit-filter-control { min-width: 100%; width: 100%; }
+      #visit-status-filter,
+      #visit-type-filter { min-width: 100%; width: 100%; }
+      .visit-filter-group { align-items: stretch; flex-direction: column; }
+      .schedule-board-workspace.is-map-open .visit-filter-group {
+          display: flex;
+          grid-template-columns: none;
+      }
+      .maintenance-details-overlay { padding: 10px; }
+      .maintenance-details-dialog {
+          height: calc(100vh - 20px);
+          max-height: calc(100vh - 20px);
+      }
+      .maintenance-detail-grid { grid-template-columns: 1fr; }
+      .technician-day-visit-list { grid-template-columns: 1fr; }
+      /* Keep the side panel stacked below the calendar on narrow screens. */
+      .calendar-section.technician-visits-open {
+          display: block;
+          overflow-y: visible !important;
+      }
+      .calendar-section.technician-visits-open .calendar-panel.card {
+          height: auto;
+          min-height: 0;
+      }
+      .calendar-section.technician-visits-open .technician-day-visit-panel {
+          max-height: 340px;
+      }
+      .technician-panel-resizer { display: none !important; }
+  }
+
+  /* Responsive refinements for narrow viewports, touch screens, and short displays. */
+  .schedule-board-workspace,
+  .schedule-board-canvas,
+  .board-sections-stack,
+  .visits-panel,
+  .calendar-section,
+  .calendar-panel,
+  .maintenance-details-dialog {
+      box-sizing: border-box;
+      max-width: 100%;
+      min-width: 0;
+  }
+
+  /* Both primary cards share one layout rail. Bootstrap row gutters previously
+     made the calendar card narrower because it sits inside an extra wrapper. */
+  .board-sections-stack {
+      margin-left: 0;
+      margin-right: 0;
+      width: 100%;
+  }
+
+  .board-sections-stack > .visits-panel,
+  .board-sections-stack > .calendar-section {
+      flex-basis: 100%;
+      max-width: 100%;
+      width: 100%;
+  }
+
+  .board-sections-stack > .calendar-section {
+      padding-left: 0;
+      padding-right: 0;
+  }
+
+  .schedule-board-canvas {
+      width: 100%;
+  }
+
+  @media (min-width: 1101px) and (max-height: 719px) {
+      .schedule-board-canvas,
+      .schedule-board-workspace.is-map-open .schedule-board-canvas {
+          height: auto;
+          min-height: 0;
+          overflow: visible;
+      }
+
+      .board-sections-stack { height: auto; }
+      .visits-panel { flex-basis: auto; }
+      .horizontal-visit-list { max-height: min(42vh, 360px); }
+      .calendar-section { max-height: 58vh; }
+  }
+
+  @media (max-width: 1100px) {
+      .schedule-board-canvas { padding: clamp(10px, 2vw, 16px); }
+      .visit-list-toolbar { gap: 12px; }
+      .visit-filter-group { width: 100%; }
+      .visit-search-wrap { flex: 1 1 220px; min-width: 0; }
+      .visit-search-wrap .visit-filter-control,
+      #visit-status-filter,
+      #visit-type-filter { min-width: 0; width: 100%; }
+      .calendar-panel .card-header { flex-wrap: wrap; }
+      #calendar-technician-filter { max-width: min(100%, 320px); }
+  }
+
+  @media (max-width: 767px) {
+      /* On phones, stack each technician above their own horizontally
+         scrollable time rail instead of making the entire calendar desktop-wide. */
+      .calendar-panel .card-body { min-width: 0; overflow: visible; padding: 10px; }
+      .calendar-panel .card-body > .row {
+          display: block;
+          margin-left: 0;
+          margin-right: 0;
+          min-width: 0;
+      }
+      .calendar-panel .card-body > .row > .col-4,
+      .calendar-panel .card-body > .row > .col-8 {
+          flex: none;
+          max-width: 100%;
+          width: 100% !important;
+      }
+      .calendar-panel .card-body > .row > .col-4:first-child {
+          align-items: center;
+          border: 0 !important;
+          display: flex;
+          justify-content: flex-start;
+          min-height: 34px;
+          padding: 4px 2px 8px;
+          text-align: left !important;
+      }
+      .calendar-panel .card-body > .row > .col-8:nth-child(2) {
+          margin-bottom: 10px;
+          padding: 0 0 6px;
+      }
+      .calendar-panel .card-body > .row > .calendar-technician-entry.col-4 {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0 !important;
+          border-bottom: 0 !important;
+          border-radius: 10px 10px 0 0;
+          margin: 12px 0 0;
+          min-height: 0;
+          padding: 8px 10px;
+      }
+      .calendar-panel .card-body > .row > .calendar-technician-entry.col-8 {
+          border: 1px solid #e2e8f0;
+          border-radius: 0 0 10px 10px;
+          margin: 0 0 4px;
+          min-height: 58px;
+          overflow-x: auto;
+          overscroll-behavior-x: contain;
+          padding: 6px 0;
+          -webkit-overflow-scrolling: touch;
+      }
+      .calendar-panel .card-body > .row > .col-8 > .d-flex {
+          min-width: 760px;
+          width: 760px !important;
+      }
+      .calendar-panel .card-body > .row > .col-8:nth-child(2) > .d-flex {
+          min-width: 760px;
+      }
+      .calendar-panel .schedule-user-row {
+          grid-template-columns: 38px minmax(0, 1fr) auto;
+          min-height: 40px;
+      }
+      .calendar-panel .schedule-user-details { min-width: 0; overflow-wrap: anywhere; }
+      .calendar-panel .schedule-user-details small { overflow-wrap: anywhere; }
+      .calendar-panel .schedule-user-percentage { white-space: nowrap; }
+      .calendar-panel .schedule-user-avatar-slot,
+      .calendar-panel .schedule-user-avatar { height: 36px; width: 36px; }
+
+      .calendar-guidance { align-items: flex-start; }
+      .calendar-guidance-dot { flex: 0 0 10px; margin-top: 4px; }
+
+      .schedule-board-workspace.is-map-open:not(.is-map-floating) .expedition-board-map-section {
+          bottom: 8px !important;
+          height: min(72dvh, 620px);
+          inset: auto 8px 8px !important;
+          max-height: calc(100dvh - 92px);
+          top: auto !important;
+          width: auto !important;
+      }
+
+      .schedule-board-workspace.is-map-floating .expedition-board-map-section {
+          max-height: calc(100dvh - 72px) !important;
+          max-width: calc(100vw - 16px) !important;
+      }
+
+      .expedition-board-map-header { gap: 8px; }
+      .expedition-board-map-header .board-section-title { font-size: 16px; }
+      .expedition-board-map-header .board-section-subtitle { font-size: 11px; }
+      .map-technician-search { margin-left: 0; min-width: 180px; }
+      .map-visit-type-filters { gap: 6px; }
+      .board-map-floating-move { height: 40px; width: 28px; }
+      .board-map-floating-resize-x { width: 14px; }
+      .board-map-floating-resize-y { height: 14px; }
+  }
+
+  @media (max-width: 640px) {
+      .schedule-board-canvas { border-radius: 10px; padding: 8px; }
+      .board-panel { border-radius: 10px; padding: 10px; }
+      .board-section-title { font-size: clamp(16px, 5vw, 19px); }
+      .board-section-subtitle { line-height: 1.45; }
+      .expedition-board-map-header { align-items: stretch !important; flex-direction: column; }
+      .map-header-actions { justify-content: space-between; width: 100%; }
+      .map-technician-search { flex: 1 1 auto; min-width: 0; }
+      .map-date-range-toolbar { align-items: flex-start; flex-direction: column; }
+      .map-date-range-buttons { width: 100%; }
+      .map-date-range-button { flex: 1 1 auto; }
+      .map-date-range-summary { white-space: normal; }
+      .map-visit-type-filter { max-width: min(48vw, 210px); }
+      .visit-list-toolbar { align-items: stretch; }
+      .visit-filter-group { display: flex; flex-direction: column; gap: 8px; }
+      .visit-filter-control,
+      .visit-search-wrap,
+      .visit-search-wrap .visit-filter-control,
+      #visit-status-filter,
+      #visit-type-filter { max-width: none; width: 100%; }
+
+      .horizontal-visit-list { max-height: min(42vh, 360px); }
+      .horizontal-visit-header { display: none; }
+      .horizontal-visit-row {
+          align-items: start;
+          display: grid;
+          gap: 7px 12px;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          min-height: 0;
+          min-width: 0;
+          padding: 11px 10px;
+          width: 100%;
+      }
+      .horizontal-visit-row > div:first-child { grid-column: 1 / -1; }
+      .horizontal-visit-row > div:nth-child(2),
+      .horizontal-visit-row > div:nth-child(3),
+      .horizontal-visit-row > div:nth-child(4),
+      .horizontal-visit-row > div:nth-child(5) {
+          overflow-wrap: anywhere;
+          white-space: normal;
+      }
+      .horizontal-visit-row > div:nth-child(3) { text-align: right; }
+      .horizontal-visit-row > div:nth-child(5) {
+          grid-column: 1 / -1;
+          justify-content: flex-start;
+      }
+      .horizontal-visit-party { overflow: visible; text-overflow: clip; }
+      .horizontal-visit-meta { overflow-wrap: anywhere; white-space: normal; }
+
+      .calendar-panel .card-header { align-items: stretch !important; flex-direction: column; }
+      .calendar-panel .card-header > .d-flex { width: 100%; }
+      #calendar-technician-filter { max-width: none; width: 100%; }
+      .calendar-panel .card-body { padding: 8px; }
+      .calendar-panel .card-body > .row > .col-8 > .d-flex { min-width: 760px; }
+      .calendar-panel .card-body > .row > .calendar-technician-entry.col-4 { padding: 7px 8px; }
+      .calendar-panel .card-body > .row > .calendar-technician-entry.col-8 { min-height: 54px; }
+
+      .maintenance-details-overlay { align-items: flex-start; }
+      .maintenance-details-dialog {
+          border-radius: 12px;
+          height: calc(100vh - 20px);
+          height: calc(100dvh - 20px);
+          max-height: calc(100dvh - 20px);
+          width: 100%;
+      }
+      .maintenance-details-dialog .maintenance-details-header { padding: 12px; }
+      .maintenance-details-dialog .card-body { padding: 10px 12px; }
+      .maintenance-details-dialog .maintenance-inline-panel > .nav-tabs { gap: 2px; }
+      .maintenance-details-dialog .maintenance-inline-panel .nav-link { padding: 9px 10px; }
+      .maintenance-detail-grid { grid-template-columns: minmax(0, 1fr); }
+      .maintenance-details-dialog .tab-content table { min-width: 600px; }
+      .maintenance-details-dialog .tab-content .table-responsive { overflow-x: auto; }
+
+      .technician-day-visit-list { grid-template-columns: minmax(0, 1fr); }
+      .schedule-user-row { grid-template-columns: 40px minmax(0, 1fr) 58px; }
+      .schedule-user-avatar-slot,
+      .schedule-user-avatar { height: 38px; width: 38px; }
+  }
+
+  @media (max-width: 380px) {
+      .schedule-board-canvas { padding: 6px; }
+      .board-panel { padding: 8px; }
+      .horizontal-visit-row { font-size: 11px; }
+      .visit-filter-control { font-size: 13px; }
+      .calendar-guidance { font-size: 11px; }
+  }
+
+  /* The shared card rail uses a 100% flex basis for the normal board. In the
+     docked map layout, reserve real space for the calendar below the queue. */
+  @media (min-width: 1180px) {
+      .schedule-board-workspace.is-map-open .schedule-board-canvas {
+          height: calc(100dvh - 125px);
+          min-height: 0;
+          overflow: hidden;
+      }
+      .schedule-board-workspace.is-map-open .board-sections-stack {
+          display: flex;
+          flex-direction: column;
+          flex-wrap: nowrap;
+          height: 100%;
+      }
+      .schedule-board-workspace.is-map-open .board-sections-stack > .visits-panel {
+          display: flex;
+          flex: 0 0 min(var(--visits-panel-height, 297px), calc(100% - 220px));
+          flex-direction: column;
+          min-height: 0;
+          overflow: hidden;
+      }
+      .schedule-board-workspace.is-map-open #maintenance-tab-body {
+          display: flex;
+          flex: 1 1 auto;
+          flex-direction: column;
+          min-height: 0;
+      }
+      .schedule-board-workspace.is-map-open .horizontal-visit-list {
+          flex: 1 1 auto;
+          max-height: none;
+          min-height: 0;
+          overflow-y: auto;
+      }
+      .schedule-board-workspace.is-map-open .board-sections-stack > .calendar-section {
+          flex: 1 1 0%;
+          min-height: 0;
+          overflow: hidden !important;
+      }
+      .schedule-board-workspace.is-map-open .calendar-panel.card {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          overflow: hidden;
+      }
+      .schedule-board-workspace.is-map-open .calendar-panel .card-body {
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+      }
+  }
 </style>
-<div class="row">
-   <div class="schedule-sidebar scrollable-y" style="overflow-y: auto; max-height: 100vh;">
-       <h4 class="d-flex">
-           <svg xmlns="http://www.w3.org/2000/svg" style="height: 25px; padding-top: 5px;" viewBox="0 0 448 512">
-               <path
-                   d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" />
-           </svg>
-           &nbsp;&nbsp;Maintenance Visit&nbsp;&nbsp;&nbsp;<span><a href="javascript:void(0)" id="mapModalBtn"><svg xmlns="http://www.w3.org/2000/svg" fill="blue" style="height: 25px;" viewBox="0 0 576 512"><path d="M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152l0 270.8c0 9.8-6 18.6-15.1 22.3L416 503l0-302.6zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6l0 251.4L32.9 502.7C17.1 509 0 497.4 0 480.4L0 209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77l0 249.3L192 449.4 192 255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg></a></span>
-       </h4>
-       <div id="mapModal" class="modal hide live-location-modal" tabindex="-1" role="dialog" aria-hidden="true">
-           <div class="modal-dialog modal-lg" style="max-width: 80%; margin: 1.75rem auto">
-               <div class="modal-content">
-                   <div class="modal-header">
-                       <div>
-                           <h5 class="modal-title">Maintenance Visit and Technicians Location</h5>
-                           <p><img src="/files/red-marker.png" style="max-width: 25px;"> : Unscheduled | <img src="/files/green-marker.png" style="max-width: 25px;"> : Scheduled | <img src="/files/white-marker.png" style="max-width: 25px;"> : Fresh Installation | <img src="/files/black-marker.png" style="max-width: 25px;"> : Rescheduled | <img src="/files/blue-marker.png" style="max-width: 25px;"> : Site Survey | <img src="/files/yellow-marker.png" style="max-width: 25px;"> : Approval Pending | <img src="/files/technician.png" style="max-width: 25px;"> : Technician </p>
-                       </div>
-                       <button type="button" class="close" data-dismiss="modal">&times;</button>
-                   </div>
-                   <div class="modal-body">
-                       <div id="live-map-container" style="height: 500px;"></div>
-                   </div>
-               </div>
-           </div>
-       </div>
-       {% if issues %}
-       {% for issue in issues %}
-       <div class="card mb-1 drag" style="padding: 10px; cursor: grab; user-select: none;" data-type="type1" draggable="true" id="{{ issue.name }}">
-           <div class="card-body">
-
-
-               <h6 class="text-success mb-0"><a href="/app/maintenance-visit/{{ issue.name }}" target="_blank">{{ issue.subject }}</a>&nbsp;&nbsp;&nbsp;<span><a href="javascript:void(0)" data-id="issueModal{{ issue.name }}"><svg
-                               xmlns="http://www.w3.org/2000/svg" fill="orange" style="height: 15px;"
-                               viewBox="0 0 576 512">
-                               <path
-                                   d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z" />
-                           </svg></a></span></h6>
-               <small class="mt-0">{{ issue.name }}</small><br>
-               <strong class="text-danger">Maintenance Type:</strong> <span class="text-danger">{{ issue.maintenance_type
-                   }}</span><br>
-               <span><strong>{{ issue.party_label }}:</strong> {{ issue.party_name }}
-                  
-               </span>
-           </div>
-       </div>
-       <div class="modal issue-modal hide" id="issueModal{{ issue.name }}" tabindex="-1" role="dialog"
-           aria-labelledby="issueModalLabel{{ issue.name }}" aria-hidden="true">
-           <div class="modal-dialog" role="document" style="max-width: 80%; margin: 1.75rem auto">
-               <div class="modal-content">
-                   <div class="modal-header">
-                       <h5 class="modal-title" id="issueModalLabel{{ issue.name }}">{{ issue.subject }}</h5>
-                       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                           <span aria-hidden="true">&times;</span>
-                       </button>
-                   </div>
-                   <div class="modal-body">
-                       <ul class="nav nav-tabs" id="myTab" role="tablist">
-                           <li class="nav-item" role="presentation">
-                               <a class="nav-link active" id="details-tab{{ issue.name }}" data-bs-toggle="tab"
-                                   href="javascript:void(0)" role="tab" aria-controls="details{{ issue.name }}"
-                                   aria-selected="true">Details</a>
-                           </li>
-                           <li class="nav-item" role="presentation">
-                               <a class="nav-link" id="checklist-tab{{ issue.name }}" data-bs-toggle="tab"
-                                   href="javascript:void(0)" role="tab" aria-controls="checklist-tree{{ issue.name }}"
-                                   aria-selected="false">Checklist Tree</a>
-                           </li>
-                           <li class="nav-item" role="presentation">
-                               <a class="nav-link" id="product-tab{{ issue.name }}" data-bs-toggle="tab"
-                                   href="javascript:void(0)" role="tab"
-                                   aria-controls="products-services{{ issue.name }}" aria-selected="false">Product and
-                                   Services</a>
-                           </li>
-                           <li class="nav-item" role="presentation">
-                               <a class="nav-link" id="symptom-tab{{ issue.name }}" data-bs-toggle="tab"
-                                   href="javascript:void(0)" role="tab"
-                                   aria-controls="symptom-resolution{{ issue.name }}" aria-selected="false">Symptoms
-                                   and resolutions</a>
-                           </li>
-                       </ul>
-                       <div class="tab-content" id="myTabContent">
-                           <div class="tab-pane fade show active" id="details{{ issue.name }}" role="tabpanel"
-                               aria-labelledby="details-tab{{ issue.name }}">
-                               <br>
-                               <div class="row">
-                                   <div class="col-6">
-                                       <p><strong>Maintenance Name:</strong> {{ issue.name }}</p>
-                                       <p><strong>Assigned to:</strong> {{ issue._assign }}</p>
-                                       <p><strong>Maintenance Type:</strong> {{ issue.maintenance_type }}</p>
-                                       <p><strong>Completion Status:</strong> {{ issue.completion_status }}</p>
-                                       <p><strong>Creation Date:</strong> {{ issue.creation }}</p>
-                                   </div>
-                                   <div class="col-6">
-                                       <div id="map-{{ issue.name }}" data-geo="{{ issue.geolocation }}" style="width: 400px; height: 400px;"></div>
-                                   </div>
-                               </div>
-                               <div class="col-12">
-                                   <p><strong>Description: &nbsp;&nbsp;&nbsp;{{ issue.maintenance_description
-                                           }}</strong> </p>
-                                   <p>{{ issue.description }}</p>
-                               </div>
-                           </div>
-                       </div>
-                       <div class="tab-content" id="myTabContent">
-                           <div class="tab-pane fade" id="checklist-tree{{ issue.name }}" role="tabpanel"
-                               aria-labelledby="checklist-tab{{ issue.name }}">
-                               <br>
-                               {{ issue.checklist_tree }}
-
-
-                           </div>
-                       </div>
-                       <div class="tab-content" id="myTabContent">
-                           <div class="tab-pane fade" id="products-services{{ issue.name }}" role="tabpanel"
-                               aria-labelledby="product-tab{{ issue.name }}">
-                               <br>
-                               <h4>Products</h4>
-                               <div class="table-responsive">
-                                   <table class="table table-striped table-bordered">
-                                       <thead>
-                                           <tr>
-                                               <th>Item Code</th>
-                                               <th>Item Name</th>
-                                               <th>Image</th>
-                                           </tr>
-                                       </thead>
-                                       <tbody>
-                                           {% for product in issue.products %}
-                                               <tr>
-                                                   <td>{{ product.item_code }}</td>
-                                                   <td>{{ product.item_name }}</td>
-                                                   <td><img src="{{product.custom_image}}" style="max-width: 100px;"></td>
-                                               </tr>
-                                           {% endfor %}
-                                       </tbody>
-                                   </table>
-                               </div>
-                               <br>
-                               <h4>Spare Items</h4>
-                               <div class="table-responsive">
-                                   <table class="table table-striped table-bordered">
-                                       <thead>
-                                           <tr>
-                                               <th>Item Code</th>
-                                               <th>Description</th>
-                                               <th>Periodicity</th>
-                                               <th>UOM</th>
-                                           </tr>
-                                       </thead>
-                                       <tbody>
-                                           {% for product in issue.spare_items %}
-                                               <tr>
-                                                   <td>{{ product.item_code }}</td>
-                                                   <td>{{ product.description }}</td>
-                                                   <td>{{ product.periodicity }}</td>
-                                                   <td>{{ product.uom }}</td>
-                                               </tr>
-                                           {% endfor %}
-                                       </tbody>
-                                   </table>
-                               </div>
-                           </div>
-                       </div>
-                       <div class="tab-content" id="myTabContent">
-                           <div class="tab-pane fade" id="symptom-resolution{{ issue.name }}" role="tabpanel"
-                               aria-labelledby="symptom-tab{{ issue.name }}">
-                               <br>
-                               {{ issue.symptoms_res }}
-                           </div>
-                       </div>
-                   </div>
-               </div>
-           </div>
-       </div>
-       <div class="modal hide" id="formModal{{ issue.name }}" tabindex="-1" role="dialog"
-           aria-labelledby="formModalLabel{{ issue.name }}" aria-hidden="true">
-           <div class="modal-dialog" role="document" style="max-width: 80%; margin: 1.75rem auto">
-               <div class="modal-content">
-                   <div class="modal-header">
-                       <h5 class="modal-title" id="formModalLabel{{ issue.name }}">{{ issue.subject }}</h5>
-                       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                           <span aria-hidden="true">&times;</span>
-                       </button>
-                   </div>
-                   <div class="modal-body">
-                       <form id="custom-form-{{ issue.name }}" class="custom-form" method="POST">
-                           <label for="code">Maintenance Code:</label>
-                           <input class="form-control code" type="text" name="code" value="{{ issue.name }}" required
-                               readonly><br><br>
-
-
-                           <label for="technician">Select Co-Technicians (<span class="text-danger">only if more than one technician required</span>):</label><br>
-                           <select class="form-control technician" name="technician[]" style="width:100%;" multiple="multiple" required>
-                               {% for tech in technicians %}
-                               <option value="{{ tech.email }}" {% if issue.assigned %} {% if tech.email in
-                                   issue.assigned %} selected {% endif %} {% endif %}>{{ tech.email }}</option>
-                               {% endfor %}
-                           </select><br><br>
-
-
-                           <label for="date">Date:</label>
-                           <input class="form-control date" type="date" name="date" required><br><br>
-
-
-                           <label for="stime">Start Time</label>
-                           <input class="form-control stime" type="time" name="stime" required readonly><br><br>
-                          
-                           <label for="etime">End Time:</label>
-                           <select class="form-control etime" name="etime" required></select>
-                           <small><span class="text-danger etime-error"></span></small><br><br>
-
-
-                           <button type="button" class="submit btn btn-success"
-                               data-issue="{{ issue.name }}">Submit</button>
-                       </form>
-                   </div>
-               </div>
-           </div>
-       </div>
-       {% endfor %}
-       {% else %}
-       <p>No issues found</p>
-       {% endif %}
-
-
-   </div>
-   <div class="schedule-calendar scrollable-y" style="overflow-y: auto; max-height: 100vh;">
-       <div class="card">
-           <div class="card-header d-flex" style="justify-content: space-between;">
-               <h5>Service Technician Calendar</h5>
-               <div class="d-flex">
-                   <a href="/app/maintenance-visit/new-maintenance-visit" class="btn btn-primary">Add Maintenance Visit</a>&nbsp;&nbsp;
-                   <div class="dropdown">
-                       <button class="btn btn-primary" type="button" id="select-day">
-                           Select Day
-                       </button>
-                       <ul id="select-day-menu" style="display: none; position: absolute; top: 100%; right: 0; z-index: 1000; background: white; list-style: none; padding: 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #ddd; width: 150px;">
-                           <li><a class="dropdown-item" href="/app/schedule-board-today">Today</a></li>
-                           <li><a class="dropdown-item" href="/app/schedule-board-yeste">Yesterday</a></li>
-                           <li><a class="dropdown-item" href="/app/schedule-tomorrow">Tomorrow</a></li>
-                           <li><a class="dropdown-item" href="/app/schedule-board-last7">Last 7 Days</a></li>
-                           <li><a class="dropdown-item" href="/app/schedule-board-next7">Next 7 Days</a></li>
-                       </ul>
-                   </div>                 
-               </div>               
-           </div>
-           <div class="card-body">
-               {{ message }}
-               <br>
-               <br>
-               <div class="row">
-                   <div class="col-5 mb-1 text-center"
-                       style="border-bottom: 1px solid #000; border-right: 1px solid #000;"><b>Users</b></div>
-                   <div class="col-7 mb-1 d-flex scrollable-x" style="width: 100%; overflow-x: auto; white-space: nowrap;">
-                   {% for date in dates %}
-                   <div style="margin-right: 8px;">
-                       <div style="border-right: 1px solid #000; text-align: center;"><u><b>{{ date }}</b></u></div>
-                       <div class="d-flex" style="border-bottom: 1px solid #000;">
-                           {% for slot in slots %}
-                           <div style="width: 12.5px; box-sizing: border-box; padding-left: 2px; white-space: nowrap; overflow: visible; font-size: 10px; text-align: left;" class="px-0">
-                               {% if slot.is_hour %}{{ slot.label }}{% endif %}
-                           </div>
-                           {% endfor %}
-                       </div>
-                   </div>
-                   {% endfor %}
-                   </div>
-                   {% for item in technicians%}
-                   <div class="col-5 mb-1" style="border-bottom: 1px solid #000; border-right: 1px solid #000;">
-                       <div class="d-flex schedule-user-row">
-                           <div class="schedule-user-avatar-slot">
-                               {% if item.user_image %}
-                               <img class="schedule-user-avatar" src="{{ item.user_image }}" alt="">
-                               {% endif %}
-                           </div>
-                           <div class="schedule-user-details">{{ item.full_name }}<br><small>{{ item.email }}</small></div>
-                           <div class="schedule-user-percentage">{{ item.total_hours }} %</div>
-                       </div>
-                   </div>
-                   <div class="col-7 mb-1 d-flex scrollable-x" style="width: 100%; overflow-x: auto; white-space: nowrap; align-items: center;">
-                       <div class="d-flex">
-                           {{ item.html_content }}
-                       </div>
-                   </div>
-                   {% endfor %}
-               </div>
-           </div>
-       </div>
-   </div>
+<div class="schedule-board-workspace" id="schedule-board-workspace" data-board-date="{{ board_date }}" data-today-date="{{ today_date }}">
+<div class="schedule-board-canvas">
+{% if false %}
+<!-- OLD NUMBER CARDS (removed from the Today board) -->
+<div class="visit-summary-grid">
+    <div class="visit-summary-card">
+        <div class="visit-summary-icon" aria-hidden="true">&#931;</div>
+        <div>
+            <div class="visit-summary-label">Total visits</div>
+            <div class="visit-summary-value">{{ visit_summary.total_visits }}</div>
+        </div>
+    </div>
+    {% if false %}
+    <!-- OLD STATUS CARDS: Unscheduled, In progress and Completed. Replaced by visit-type cards. -->
+    {% endif %}
+    {% for visit_type in visit_type_summary %}
+    <div class="visit-summary-card summary-type">
+        <div class="visit-summary-icon" aria-hidden="true">&#9670;</div>
+        <div>
+            <div class="visit-summary-label">{{ visit_type.label }}</div>
+            <div class="visit-summary-value">{{ visit_type.count }}</div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
-<br><br><br><br><br><br>
+{% endif %}
+<div class="row board-sections-stack">
+  <!-- OLD SIDE-BY-SIDE LAYOUT: <div class="col-5 scrollable-y" style="overflow-y: auto; max-height: 100vh;"> -->
+  <!-- OLD BASIC FULL-WIDTH CONTAINER: <div class="col-12 scrollable-y" style="overflow-y: auto; max-height: 55vh;"> -->
+  <div class="col-12 board-panel visits-panel">
+      {% if false %}
+      <!-- OLD MAINTENANCE VISIT HEADING AND MAP TRIGGER (removed from the redesigned list) -->
+      <h3 class="d-flex">
+          <svg xmlns="http://www.w3.org/2000/svg" style="height: 25px; padding-top: 5px;" viewBox="0 0 448 512">
+              <path
+                  d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" />
+          </svg>
+          &nbsp;&nbsp;<span id="maintenance-tab" class="h4">Maintenance Visit</span>
+          <!-- &nbsp;&nbsp;&nbsp;&nbsp;<span id="lead-tab"><a href="javascript:void(0)">Lead Site Survey</a></span> -->&nbsp;&nbsp;&nbsp;&nbsp;
+          <span><a href="javascript:void(0)" id="mapModalBtn"><svg
+                      xmlns="http://www.w3.org/2000/svg" fill="blue" style="height: 25px;" viewBox="0 0 576 512">
+                      <path
+                          d="M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152l0 270.8c0 9.8-6 18.6-15.1 22.3L416 503l0-302.6zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6l0 251.4L32.9 502.7C17.1 509 0 497.4 0 480.4L0 209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77l0 249.3L192 449.4 192 255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z" />
+                  </svg></a></span>
+      </h3>
+      {% endif %}
+      <div id="mapModal" class="modal hide live-location-modal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog modal-lg" style="max-width: 100%; margin: 1.75rem auto">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <div>
+                          <h5 class="modal-title">Maintenance Visit and Technicians Location</h5>
+                          <p><img src="/files/red-marker.png" style="max-width: 25px;"> : Unscheduled | <img src="/files/green-marker.png" style="max-width: 25px;"> : Scheduled | <img src="/files/white-marker.png" style="max-width: 25px;"> : Fresh Installation | <img src="/files/black-marker.png" style="max-width: 25px;"> : Rescheduled | <img src="/files/blue-marker.png" style="max-width: 25px;"> : Site Survey | <img src="/files/yellow-marker.png" style="max-width: 25px;"> : Approval Pending | <img src="/files/technician.png" style="max-width: 25px;"> : Technician </p>
+                      </div>
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  <div class="modal-body">
+                      <div id="live-map-container" style="height: 500px;"></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="visit-list-toolbar">
+          <div>
+              <h4 class="board-section-title" id="visit-list-title">Unassigned visits</h4>
+              <p class="board-section-subtitle">Filter visits by status, type, assignment, and territory; schedule visits across the next seven days.</p>
+          </div>
+          <div class="visit-filter-group" aria-label="Visit filters">
+              <div class="visit-search-wrap">
+                  <input id="visit-search-filter" class="visit-filter-control" type="search"
+                      placeholder="Search visit" aria-label="Search by visit ID or type">
+              </div>
+              <div class="visit-search-wrap">
+                  <input id="customer-search-filter" class="visit-filter-control" type="search"
+                      placeholder="Search customer or lead" aria-label="Search by customer or lead">
+              </div>
+              <select id="visit-status-filter" class="visit-filter-control" aria-label="Filter by completion status">
+                  <option value="">All statuses</option>
+                  <option value="Pending">Pending</option>
+                  {% for status_option in completion_status_options %}
+                  {% if status_option != "Pending" %}
+                  <option value="{{ status_option }}">{{ status_option }}</option>
+                  {% endif %}
+                  {% endfor %}
+              </select>
+              <select id="visit-type-filter" class="visit-filter-control" aria-label="Filter by visit type">
+                  <option value="">All visit types</option>
+                  {% for visit_type in visit_type_summary %}
+                  <option value="{{ visit_type.label }}">{{ visit_type.label }}</option>
+                  {% endfor %}
+              </select>
+              <select id="visit-assignment-filter" class="visit-filter-control" aria-label="Filter by assignment">
+                  <option value="unassigned" selected>Unassigned</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="all">All assignments</option>
+              </select>
+              <select id="visit-territory-filter" class="visit-filter-control" aria-label="Filter by territory">
+                  <option value="">All territories</option>
+                  {% for territory in territory_options %}
+                  <option value="{{ territory }}">{{ territory }}</option>
+                  {% endfor %}
+              </select>
+              <span class="visible-visit-count"><span id="visible-visit-count">0</span> visits</span>
+          </div>
+      </div>
+      <div id="maintenance-tab-body">
+          <div class="horizontal-visit-list">
+              <div class="horizontal-visit-header">
+                  <div>Visit Type</div>
+                  <div>Customer / Lead</div>
+                  <div>Date &amp; Time</div>
+                  <div>Completion</div>
+                  <div>Actions</div>
+              </div>
+          {% for issue in issues %}
+          {% if false %}
+          <!-- OLD VERTICAL VISIT CARD (replaced by the horizontal visit row) -->
+          <div class="card mb-1 drag maintenance-visit-card" style="padding: 10px; cursor: grab; user-select: none;" data-type="type1"
+              data-issue="{{ issue.name }}" draggable="true" id="{{ issue.name }}">
+              <div class="card-body">
+                   <h6 class="text-success mb-0"><a href="/app/maintenance-visit/{{ issue.name }}" target="_blank">{{
+                          issue.subject }}</a>&nbsp;&nbsp;&nbsp;
+                          {% if false %}
+                          <!-- OLD MODAL TRIGGER (replaced by the shared inline detail trigger) -->
+                          <span><a href="javascript:void(0)" data-id="issueModal{{ issue.name }}">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="orange"
+                                  style="height: 15px;" viewBox="0 0 576 512">
+                                  <path
+                                      d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z" />
+                              </svg></a></span>
+                          {% endif %}
+                          <span>
+                              <a href="javascript:void(0)" class="show-inline-details"
+                                  data-issue="{{ issue.name }}" aria-label="View {{ issue.name }} details">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="orange"
+                                      style="height: 15px;" viewBox="0 0 576 512">
+                                      <path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z" />
+                                  </svg>
+                              </a>
+                          </span></h6>
+                  <small class="mt-0">{{ issue.name }}</small><br>
+                  <strong class="text-danger">Maintenance Type:</strong> <span class="text-danger">{{
+                      issue.maintenance_type
+                      }}</span><br>
+                  <!-- OLD: Customer/Lead was displayed as plain text. -->
+                  <span><strong>{{ issue.party_label }}:</strong>
+                      {% if issue.customer %}
+                      <a href="/app/customer/{{ issue.customer }}" target="_blank" rel="noopener">{{ issue.party_name }}</a>
+                      {% else %}
+                      {% if issue.custom_lead %}
+                      <a href="/app/lead/{{ issue.custom_lead }}" target="_blank" rel="noopener">{{ issue.party_name }}</a>
+                      {% else %}
+                      {{ issue.party_name || "Not specified" }}
+                      {% endif %}
+                      {% endif %}
+                  </span>
+              </div>
+          </div>
+          {% endif %}
+          <div class="horizontal-visit-row {% if not issue.is_assigned %}drag{% endif %} maintenance-visit-card" data-type="type1"
+              data-completion="{{ issue.completion_status }}"
+              data-visit-type="{{ issue.maintenance_type }}"
+              data-assignment="{% if issue.is_assigned %}assigned{% else %}unassigned{% endif %}"
+              data-territory="{{ issue.territory }}"
+              data-visit-search="{{ issue.name }} {{ issue.maintenance_type }}"
+              data-party-search="{{ issue.party_name }} {{ issue.party_label }}"
+              data-issue="{{ issue.name }}" draggable="{% if issue.is_assigned %}false{% else %}true{% endif %}" id="{{ issue.name }}">
+              <div class="horizontal-visit-subject" title="{{ issue.maintenance_type }}">
+                  <strong>{{ issue.maintenance_type || "Not specified" }}</strong>
+                  <span class="horizontal-visit-meta">{{ issue.name }}</span>
+                  {% if issue.is_assigned %}<span class="horizontal-visit-meta">Assigned · {{ issue.assigned_display }}</span>{% endif %}
+              </div>
+              <div class="horizontal-visit-party" title="{{ issue.party_name }}">
+                  <!-- OLD: Customer/Lead was displayed as plain text. -->
+                  {% if issue.customer %}
+                  <a href="/app/customer/{{ issue.customer }}" target="_blank" rel="noopener">{{ issue.party_name }}</a>
+                  {% else %}
+                  {% if issue.custom_lead %}
+                  <a href="/app/lead/{{ issue.custom_lead }}" target="_blank" rel="noopener">{{ issue.party_name }}</a>
+                  {% else %}
+                  {{ issue.party_name || "Not specified" }}
+                  {% endif %}
+                  {% endif %}
+                  <span class="horizontal-visit-meta">{{ issue.party_label }}</span>
+              </div>
+              <div>
+                  {{ issue.mntc_date || "Not scheduled" }}
+                  <span class="horizontal-visit-meta">{{ issue.mntc_time_display || "" }}</span>
+              </div>
+              <div>
+                  <select class="horizontal-status-pill board-row-completion" data-visit="{{ issue.name }}"
+                      aria-label="{% if issue.can_write %}Change{% else %}Completion{% endif %} status for {{ issue.name }}"
+                      draggable="false" {% if not issue.can_write %}disabled{% endif %}>
+                      <option value="Pending" {% if !issue.completion_status || issue.completion_status == "Pending" %}selected{% endif %}>Pending</option>
+                      {% for status_option in completion_status_options %}
+                      {% if status_option != "Pending" %}
+                      <option value="{{ status_option }}" {% if issue.completion_status == status_option %}selected{% endif %}>{{ status_option }}</option>
+                      {% endif %}
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="horizontal-visit-actions">
+                  {% if not issue.is_assigned %}<button type="button" class="assign-visit" data-visit="{{ issue.name }}"
+                      aria-label="Assign {{ issue.name }}" title="Assign this visit without dragging" draggable="false">Assign</button>{% endif %}
+                  <button type="button" class="create-visit-issue" data-visit="{{ issue.name }}"
+                      data-customer="{{ issue.customer }}" aria-label="Create issue for {{ issue.name }}"
+                      title="Create issue for this visit" draggable="false">+ Issue</button>
+              </div>
+          </div>
+          {% if false %}
+          <!-- OLD PER-VISIT DETAIL MODAL (kept disabled while the inline panel is validated) -->
+          <div class="modal issue-modal hide" id="issueModal{{ issue.name }}" tabindex="-1" role="dialog"
+              aria-labelledby="issueModalLabel{{ issue.name }}" aria-hidden="true">
+              <div class="modal-dialog" role="document" style="max-width: 100%; margin: 1.75rem auto">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h5 class="modal-title" id="issueModalLabel{{ issue.name }}">{{ issue.subject }}</h5>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                      <div class="modal-body">
+                          <ul class="nav nav-tabs" id="myTab" role="tablist">
+                              <li class="nav-item" role="presentation">
+                                  <a class="nav-link active" id="details-tab{{ issue.name }}" data-bs-toggle="tab"
+                                      href="javascript:void(0)" role="tab" aria-controls="details{{ issue.name }}"
+                                      aria-selected="true">Details</a>
+                              </li>
+                              <li class="nav-item" role="presentation">
+                                  <a class="nav-link" id="checklist-tab{{ issue.name }}" data-bs-toggle="tab"
+                                      href="javascript:void(0)" role="tab" aria-controls="checklist-tree{{ issue.name }}"
+                                      aria-selected="false">Checklist Tree</a>
+                              </li>
+                              <li class="nav-item" role="presentation">
+                                  <a class="nav-link" id="product-tab{{ issue.name }}" data-bs-toggle="tab"
+                                      href="javascript:void(0)" role="tab"
+                                      aria-controls="products-services{{ issue.name }}" aria-selected="false">Product and
+                                      Services</a>
+                              </li>
+                              <li class="nav-item" role="presentation">
+                                  <a class="nav-link" id="symptom-tab{{ issue.name }}" data-bs-toggle="tab"
+                                      href="javascript:void(0)" role="tab"
+                                      aria-controls="symptom-resolution{{ issue.name }}" aria-selected="false">Symptoms
+                                      and resolutions</a>
+                              </li>
+                          </ul>
+                          <div class="tab-content" id="myTabContent">
+                              <div class="tab-pane fade show active" id="details{{ issue.name }}" role="tabpanel"
+                                  aria-labelledby="details-tab{{ issue.name }}">
+                                  <br>
+                                  <div class="row">
+                                      <div class="col-6">
+                                          <p><strong>Maintenance Name:</strong> {{ issue.name }}</p>
+                                          <p><strong>Assigned to:</strong> {{ issue._assign }}</p>
+                                          <p><strong>Maintenance Type:</strong> {{ issue.maintenance_type }}</p>
+                                          <p><strong>Completion Status:</strong> {{ issue.completion_status }}</p>
+                                          <p><strong>Creation Date:</strong> {{ issue.creation_display }}</p>
+                                      </div>
+                                      <div class="col-6">
+                                          <div id="map-{{ issue.name }}" data-geo="{{ issue.geolocation }}"
+                                              style="width: 400px; height: 400px;"></div>
+                                      </div>
+                                  </div>
+                                  <div class="col-12">
+                                      <!-- OLD: maintenance_description was displayed here even though it is a Link field. -->
+                                      <p><strong>Description:</strong></p>
+                                      <p>{{ issue.description || "No description available." }}</p>
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="tab-content" id="myTabContent">
+                              <div class="tab-pane fade" id="checklist-tree{{ issue.name }}" role="tabpanel"
+                                  aria-labelledby="checklist-tab{{ issue.name }}">
+                                  <br>
+                                  {{ issue.checklist_tree }}
+                               </div>
+                          </div>
+                          <div class="tab-content" id="myTabContent">
+                              <div class="tab-pane fade" id="products-services{{ issue.name }}" role="tabpanel"
+                                  aria-labelledby="product-tab{{ issue.name }}">
+                                  <br>
+                                  <h4>Products</h4>
+                                  <div class="table-responsive">
+                                      <table class="table table-striped table-bordered">
+                                          <thead>
+                                              <tr>
+                                                  <th>Item Code</th>
+                                                  <th>Item Name</th>
+                                                  <!-- OLD: Serial No was not displayed. -->
+                                                  <th>Serial No</th>
+                                                  <th>Image</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {% for product in issue.products %}
+                                              <tr>
+                                                  <td>{% if product.item_code %}<a href="/app/item/{{ product.item_code }}" target="_blank" rel="noopener">{{ product.item_code }}</a>{% else %}Not specified{% endif %}</td>
+                                                  <td>{{ product.item_name }}</td>
+                                                  <td>{% if product.serial_no %}<a href="/app/serial-no/{{ product.serial_no }}" target="_blank" rel="noopener">{{ product.serial_no }}</a>{% else %}Not specified{% endif %}</td>
+                                                  <td><img src="{{product.custom_image}}" style="max-width: 100px;"></td>
+                                              </tr>
+                                              {% endfor %}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                                  <br>
+                                  <h4>Spare Items</h4>
+                                  <div class="table-responsive">
+                                      <table class="table table-striped table-bordered">
+                                          <thead>
+                                              <tr>
+                                                  <th>Item Code</th>
+                                                  <th>Description</th>
+                                                  <th>Periodicity</th>
+                                                  <th>UOM</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {% for product in issue.spare_items %}
+                                              <tr>
+                                                  <td>{% if product.item_code %}<a href="/app/item/{{ product.item_code }}" target="_blank" rel="noopener">{{ product.item_code }}</a>{% else %}Not specified{% endif %}</td>
+                                                  <td>{{ product.description }}</td>
+                                                  <td>{{ product.periodicity }}</td>
+                                                  <td>{{ product.uom }}</td>
+                                              </tr>
+                                              {% endfor %}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="tab-content" id="myTabContent">
+                              <div class="tab-pane fade" id="symptom-resolution{{ issue.name }}" role="tabpanel"
+                                  aria-labelledby="symptom-tab{{ issue.name }}">
+                                  <br>
+                                  {{ issue.symptoms_res }}
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          {% endif %}
+          {% if false %}
+          <!-- OLD SERVER-RENDERED VISIT DETAILS: loaded on demand by the detail endpoint. -->
+          <template id="inline-detail-template-{{ issue.name }}">
+              <div class="maintenance-inline-panel" data-issue="{{ issue.name }}">
+                  <ul class="nav nav-tabs" role="tablist">
+                      <li class="nav-item"><a class="nav-link active" href="javascript:void(0)"
+                              aria-controls="inline-details-{{ issue.name }}">Details</a></li>
+                      <!-- OLD: This tab was hidden when the visit had no checklist rows. -->
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-checklist-{{ issue.name }}">Checklist Tree</a></li>
+                      <!-- OLD: This tab was hidden when product and spare-item tables were empty. -->
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-products-{{ issue.name }}">Product and Services</a></li>
+                      <!-- OLD: The remaining information tabs were conditionally rendered. -->
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-symptoms-{{ issue.name }}">Symptoms and resolutions</a></li>
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-comments-{{ issue.name }}">Comments</a></li>
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-attachments-{{ issue.name }}">Attached Images</a></li>
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-requests-{{ issue.name }}">Symptom Requests</a></li>
+                      <li class="nav-item"><a class="nav-link" href="javascript:void(0)"
+                              aria-controls="inline-notes-{{ issue.name }}">Technician Notes</a></li>
+                  </ul>
+
+                  <div class="tab-content">
+                      <div class="tab-pane fade show active" id="inline-details-{{ issue.name }}">
+                          <div class="maintenance-detail-grid">
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Visit</span>
+                                  <a class="maintenance-detail-field-value" href="/app/maintenance-visit/{{ issue.name }}" target="_blank">{{ issue.name }}</a>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Visit Type</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.maintenance_type || "Not specified" }}</span>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">{{ issue.party_label }}</span>
+                                  <!-- OLD: Customer/Lead was displayed as plain text. -->
+                                  {% if issue.customer %}
+                                  <a class="maintenance-detail-field-value" href="/app/customer/{{ issue.customer }}"
+                                      target="_blank" rel="noopener">{{ issue.party_name }}</a>
+                                  {% else %}
+                                  {% if issue.custom_lead %}
+                                  <a class="maintenance-detail-field-value" href="/app/lead/{{ issue.custom_lead }}"
+                                      target="_blank" rel="noopener">{{ issue.party_name }}</a>
+                                  {% else %}
+                                  <span class="maintenance-detail-field-value">{{ issue.party_name || "Not specified" }}</span>
+                                  {% endif %}
+                                  {% endif %}
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Scheduled Date</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.mntc_date || "Not scheduled" }}</span>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Scheduled Time</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.mntc_time_display || "Not scheduled" }}</span>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Completion</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.completion_status || "Pending" }}</span>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Scheduling Status</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.custom_scheduling_status || "Unscheduled" }}</span>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Document Status</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.status || "Draft" }}</span>
+                              </div>
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Company</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.company || "Not specified" }}</span>
+                              </div>
+                              {% if issue.maintenance_schedule %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Maintenance Schedule</span>
+                                  <a class="maintenance-detail-field-value" href="/app/maintenance-schedule/{{ issue.maintenance_schedule }}" target="_blank">{{ issue.maintenance_schedule }}</a>
+                              </div>
+                              {% endif %}
+                              {% if issue.contact_person || issue.contact_text %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Contact Person</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.contact_text || issue.contact_person }}</span>
+                              </div>
+                              {% endif %}
+                              {% if issue.contact_mobile %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Contact Phone</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.contact_mobile }}</span>
+                              </div>
+                              {% endif %}
+                              {% if issue.contact_email %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Contact Email</span>
+                                  <a class="maintenance-detail-field-value" href="mailto:{{ issue.contact_email }}">{{ issue.contact_email }}</a>
+                              </div>
+                              {% endif %}
+                              {% if issue.address_text || issue.customer_address %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Customer Address</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.address_text || issue.customer_address }}</span>
+                              </div>
+                              {% endif %}
+                              {% if issue.territory %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Territory</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.territory }}</span>
+                              </div>
+                              {% endif %}
+                              {% if issue.customer_group %}
+                              <div class="maintenance-detail-field">
+                                  <span class="maintenance-detail-field-label">Customer Group</span>
+                                  <span class="maintenance-detail-field-value">{{ issue.customer_group }}</span>
+                              </div>
+                              {% endif %}
+                          </div>
+                          {% if issue.description %}
+                          <div class="maintenance-detail-field">
+                              <span class="maintenance-detail-field-label">Description</span>
+                              <!-- OLD: maintenance_description was preferred over description. -->
+                              <div class="maintenance-detail-field-value maintenance-description-value">{{ issue.description }}</div>
+                          </div>
+                          {% endif %}
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-checklist-{{ issue.name }}">
+                          {% if issue.checklist_tree %}
+                          {{ issue.checklist_tree }}
+                          {% else %}
+                          <div class="maintenance-inline-empty">No checklist is available for this Maintenance Visit.</div>
+                          {% endif %}
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-products-{{ issue.name }}">
+                          <h5>Products</h5>
+                          <div class="table-responsive">
+                              <table class="table table-striped table-bordered">
+                                  <!-- OLD: The Products table did not include Serial No. -->
+                                  <thead><tr><th>Item Code</th><th>Item Name</th><th>Serial No</th><th>Image</th></tr></thead>
+                                  <tbody>
+                                      {% if issue.products && issue.products.length %}
+                                      {% for product in issue.products %}
+                                      <tr><td>{% if product.item_code %}<a href="/app/item/{{ product.item_code }}" target="_blank" rel="noopener">{{ product.item_code }}</a>{% else %}Not specified{% endif %}</td><td>{{ product.item_name }}</td>
+                                          <td>{% if product.serial_no %}<a href="/app/serial-no/{{ product.serial_no }}" target="_blank" rel="noopener">{{ product.serial_no }}</a>{% else %}Not specified{% endif %}</td>
+                                          <td>{% if product.custom_image %}<img src="{{ product.custom_image }}" class="maintenance-inline-image">{% endif %}</td></tr>
+                                      {% endfor %}
+                                      {% else %}
+                                      <tr><td colspan="4">No products available.</td></tr>
+                                      {% endif %}
+                                  </tbody>
+                              </table>
+                          </div>
+                          <h5>Spare Items</h5>
+                          <div class="table-responsive">
+                              <table class="table table-striped table-bordered">
+                                  <thead><tr><th>Item Code</th><th>Description</th><th>Periodicity</th><th>UOM</th></tr></thead>
+                                  <tbody>
+                                      {% if issue.spare_items && issue.spare_items.length %}
+                                      {% for product in issue.spare_items %}
+                                      <tr><td>{% if product.item_code %}<a href="/app/item/{{ product.item_code }}" target="_blank" rel="noopener">{{ product.item_code }}</a>{% else %}Not specified{% endif %}</td><td>{{ product.description }}</td>
+                                          <td>{{ product.periodicity }}</td><td>{{ product.uom }}</td></tr>
+                                      {% endfor %}
+                                      {% else %}
+                                      <tr><td colspan="4">No spare items available.</td></tr>
+                                      {% endif %}
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-symptoms-{{ issue.name }}">
+                          <!-- OLD: Symptoms were displayed as item headings followed by arrow-separated text. -->
+                          {% if issue.symptoms && issue.symptoms.length %}
+                          <div class="table-responsive">
+                              <table class="table table-striped table-bordered">
+                                  <thead>
+                                      <tr>
+                                          <th>Item Code</th>
+                                          <th>Symptom Code</th>
+                                          <th>Resolution</th>
+                                          <th>Attach Image</th>
+                                          <th>Serial No.</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      {% for symptom in issue.symptoms %}
+                                      <tr>
+                                          <td>{% if symptom.item_code %}<a href="/app/item/{{ symptom.item_code }}" target="_blank" rel="noopener">{{ symptom.item_code }}</a>{% else %}Not specified{% endif %}</td>
+                                          <td>{{ symptom.symptom_code || "Not specified" }}</td>
+                                          <td>{{ symptom.resolution || "Not specified" }}</td>
+                                          <td>
+                                              {% if symptom.image %}
+                                              <a href="{{ symptom.image }}" target="_blank" rel="noopener">
+                                                  <img src="{{ symptom.image }}" class="maintenance-inline-image"
+                                                      alt="Symptom attachment">
+                                              </a>
+                                              {% else %}
+                                              No image
+                                              {% endif %}
+                                          </td>
+                                          <td>{% if symptom.serial_no %}<a href="/app/serial-no/{{ symptom.serial_no }}" target="_blank" rel="noopener">{{ symptom.serial_no }}</a>{% else %}Not specified{% endif %}</td>
+                                      </tr>
+                                      {% endfor %}
+                                  </tbody>
+                              </table>
+                          </div>
+                          {% else %}
+                          <div class="maintenance-inline-empty">No symptoms or resolutions are available.</div>
+                          {% endif %}
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-comments-{{ issue.name }}">
+                          {% if issue.comments && issue.comments.length %}
+                          {% for comment in issue.comments %}
+                          <div class="border-bottom mb-3 pb-2">
+                              <div>{{ comment.content }}</div>
+                              <small class="text-muted">{{ comment.comment_by || comment.owner }} · {{ comment.creation_display }}</small>
+                          </div>
+                          {% endfor %}
+                          {% else %}
+                          <div class="maintenance-inline-empty">No comments are available.</div>
+                          {% endif %}
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-attachments-{{ issue.name }}">
+                          <div class="d-flex flex-wrap" style="gap: 16px;">
+                              {% if issue.attachments && issue.attachments.length %}
+                              {% for attachment in issue.attachments %}
+                              <figure>
+                                  <a href="{{ attachment.image }}" target="_blank" rel="noopener">
+                                      <img src="{{ attachment.image }}" class="maintenance-inline-image">
+                                  </a>
+                                  {% if attachment.caption %}<figcaption>{{ attachment.caption }}</figcaption>{% endif %}
+                              </figure>
+                              {% endfor %}
+                              {% else %}
+                              <div class="maintenance-inline-empty">No attached images are available.</div>
+                              {% endif %}
+                          </div>
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-requests-{{ issue.name }}">
+                          <div class="table-responsive">
+                              <table class="table table-striped table-bordered">
+                                  <thead><tr><th>Item Code</th><th>Symptom Code</th><th>Resolution</th><th>Image</th><th>Status</th></tr></thead>
+                                  <tbody>
+                                      {% if issue.symptom_requests && issue.symptom_requests.length %}
+                                      {% for request in issue.symptom_requests %}
+                                      <tr><td>{% if request.item_code %}<a href="/app/item/{{ request.item_code }}" target="_blank" rel="noopener">{{ request.item_code }}</a>{% else %}Not specified{% endif %}</td><td>{{ request.symptom_code }}</td>
+                                          <td>{{ request.resolution }}</td>
+                                          <td>{% if request.image %}<img src="{{ request.image }}" class="maintenance-inline-image">{% endif %}</td>
+                                          <td>{{ request.status }}</td></tr>
+                                      {% endfor %}
+                                      {% else %}
+                                      <tr><td colspan="5" class="text-center text-muted">No symptom requests are available.</td></tr>
+                                      {% endif %}
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+
+                      <div class="tab-pane fade" id="inline-notes-{{ issue.name }}">
+                          {% if issue.service_tech_notes %}
+                          <p>{{ issue.service_tech_notes }}</p>
+                          {% else %}
+                          <div class="maintenance-inline-empty">No technician notes are available.</div>
+                          {% endif %}
+                      </div>
+                  </div>
+              </div>
+          </template>
+          {% endif %}
+          <div class="modal schedule-board-form-modal hide" id="formModal{{ issue.name }}" tabindex="-1" role="dialog"
+              aria-labelledby="formModalLabel{{ issue.name }}" aria-hidden="true">
+              <div class="modal-dialog schedule-board-form-dialog" role="document">
+                  <div class="modal-content schedule-board-form-content">
+                      <div class="modal-header schedule-board-form-header">
+                          <div>
+                              <div class="calendar-task-kicker">Schedule maintenance visit</div>
+                          <h5 class="modal-title" id="formModalLabel{{ issue.name }}">{{ issue.name }}</h5>
+                          </div>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                      <div class="modal-body schedule-board-form-body">
+                          <form id="custom-form-{{ issue.name }}" class="custom-form calendar-task-form" method="POST">
+                              <div class="calendar-task-field-group">
+                                  <label class="calendar-task-label" for="code-{{ issue.name }}">Maintenance visit code</label>
+                                  <input id="code-{{ issue.name }}" class="form-control code calendar-task-readonly" type="text" name="code" value="{{ issue.name }}" required
+                                      readonly>
+                              </div>
+                              <div class="calendar-task-field-group">
+                                  <label class="calendar-task-label" for="technician-{{ issue.name }}">Co-technicians <span class="calendar-task-help">Optional, use when more than one technician is needed</span></label>
+                              <select id="technician-{{ issue.name }}" class="form-control technician" name="technician[]" style="width:100%;"
+                                  multiple="multiple" size="4" required>
+                                  {% for tech in technicians %}
+                                  <option value="{{ tech.email }}" {% if issue.assigned %} {% if tech.email in
+                                      issue.assigned %} selected {% endif %} {% endif %}>{{ tech.full_name || tech.email }} ({{ tech.email }})</option>
+                                  {% endfor %}
+                              </select>
+                              </div>
+                              <div class="calendar-task-time-grid">
+                                  <div class="calendar-task-field-group">
+                                      <label class="calendar-task-label" for="date-{{ issue.name }}">Date</label>
+                                      <input id="date-{{ issue.name }}" class="form-control date" type="date" name="date" required>
+                                  </div>
+                                  <div class="calendar-task-field-group">
+                                      <label class="calendar-task-label" for="stime-{{ issue.name }}">Start time</label>
+                                      <input id="stime-{{ issue.name }}" class="form-control stime calendar-task-readonly" type="time" name="stime" required readonly>
+                                  </div>
+                                  <div class="calendar-task-field-group">
+                                      <label class="calendar-task-label" for="etime-{{ issue.name }}">End time</label>
+                                      <input id="etime-{{ issue.name }}" class="form-control etime" type="time" name="etime" step="1800" required>
+                                  </div>
+                              </div>
+                              <div class="calendar-task-error"><small><span class="text-danger etime-error"></span></small></div>
+                              <div class="calendar-task-footer">
+                                  <button type="button" class="calendar-task-cancel">Cancel</button>
+                                  <button type="button" class="submit btn calendar-task-submit"
+                                      data-issue="{{ issue.name }}">Schedule visit</button>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          {% endfor %}
+          <div id="visit-filter-empty" class="visit-filter-empty d-none">
+              No visits match these filters.
+              <button type="button" id="clear-visit-filters">Clear filters</button>
+          </div>
+          </div>
+      </div>
+
+
+
+
+  </div>
+  <!-- OLD INLINE DETAIL CARD POSITION: inside the board below the visit queue. -->
+  <div id="maintenance-inline-detail-wrapper" class="maintenance-details-overlay d-none" role="dialog"
+      aria-modal="true" aria-labelledby="maintenance-detail-title">
+      <div class="maintenance-details-dialog card" role="document">
+          <div class="card-header maintenance-details-header">
+              <div>
+                  <div class="board-eyebrow">Maintenance visit</div>
+                  <div class="maintenance-detail-heading-row">
+                      <h5 class="board-section-title mb-0" id="maintenance-detail-title">Maintenance Visit details</h5>
+                      <span class="maintenance-detail-status" id="maintenance-detail-status" hidden></span>
+                  </div>
+                  <div class="maintenance-detail-subtitle" id="maintenance-detail-subtitle" aria-live="polite"></div>
+              </div>
+              <button type="button" class="maintenance-detail-close" id="close-maintenance-inline-detail"
+                  aria-label="Close maintenance visit details">&times;</button>
+          </div>
+          <div class="card-body" id="maintenance-inline-detail-content">
+              <div class="maintenance-inline-empty">Select a Maintenance Visit to view its details.</div>
+          </div>
+      </div>
+  </div>
+  <!-- OLD SIDE-BY-SIDE LAYOUT: <div class="col-7 scrollable-y" style="overflow-y: auto; max-height: 100vh;"> -->
+  <div class="visit-calendar-resizer" id="visit-calendar-resizer" role="separator"
+      aria-label="Resize visit list and calendar" aria-orientation="horizontal"
+      aria-valuemin="190" aria-valuemax="480" aria-valuenow="380" tabindex="0"></div>
+  <div class="col-12 scrollable-y calendar-section" style="overflow-y: auto;">
+      <div class="card calendar-panel">
+          <div class="card-header d-flex align-items-center" style="justify-content: space-between; gap: 12px;">
+              <!-- OLD SIMPLE CALENDAR TITLE: <h5>Service Technician Calendar</h5> -->
+              <div>
+                  <h5 class="board-section-title">Service technician calendar</h5>
+              </div>
+              <div class="d-flex align-items-center" style="gap: 8px;">
+                  <select id="calendar-technician-filter" class="visit-filter-control" aria-label="Filter calendar by technician">
+                      <option value="">All technicians</option>
+                      {% for technician in technicians %}
+                      <option value="{{ technician.email }}">{{ technician.email }}</option>
+                      {% endfor %}
+                  </select>
+                  {% if false %}
+                  <!-- OLD CALENDAR-LEVEL ACTIONS (moved to the page header beside Schedule Board: Today) -->
+                  <a href="/app/maintenance-visit/new-maintenance-visit" class="btn btn-primary">Add Maintenance Visit</a>&nbsp;&nbsp;
+                  <div class="dropdown">
+                      <button class="btn btn-primary" type="button" id="select-day">
+                          Select Day
+                      </button>
+                      <ul id="select-day-menu" style="display: none; position: absolute; top: 100%; right: 0; z-index: 1000; background: white; list-style: none; padding: 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #ddd; width: 150px;">
+                          <li><a class="dropdown-item" href="/app/schedule-board-today">Today</a></li>
+                          <li><a class="dropdown-item" href="/app/schedule-board-yeste">Yesterday</a></li>
+                          <li><a class="dropdown-item" href="/app/schedule-tomorrow">Tomorrow</a></li>
+                          <li><a class="dropdown-item" href="/app/schedule-board-last7">Last 7 Days</a></li>
+                          <li><a class="dropdown-item" href="/app/schedule-board-next7">Next 7 Days</a></li>
+                      </ul>
+                  </div>
+                  {% endif %}
+              </div>
+          </div>
+          <div class="card-body">
+              {% if false %}
+              <!-- OLD GENERIC CALENDAR MESSAGE (replaced with actionable guidance) -->
+              {{ message }}
+              <br>
+              <br>
+              {% endif %}
+              <div class="calendar-guidance">
+                  <span class="calendar-guidance-dot" aria-hidden="true"></span>
+                  Choose a day in the next seven days, then drag an unscheduled visit to an available half-hour slot or use Assign.
+              </div>
+              <nav class="next7-calendar-days" aria-label="Calendar day in next seven days">
+                  {% for calendar_day in calendar_dates %}
+                  <button type="button" class="next7-calendar-day{% if calendar_day.selected %} is-active{% endif %}"
+                      data-date="{{ calendar_day.iso }}" aria-pressed="{% if calendar_day.selected %}true{% else %}false{% endif %}">
+                      {{ calendar_day.label }}
+                  </button>
+                  {% endfor %}
+              </nav>
+              <div class="row">
+                  <div class="col-4 mb-1 text-center"
+                      style="border-bottom: 1px solid #000; border-right: 1px solid #000;"><b>Technicians</b></div>
+                  <div class="col-8 mb-1 d-flex scrollable-x" style="width: 100%; overflow-x: auto; white-space: nowrap;">
+                      <div class="d-flex" style="width: 100%; border-bottom: 1px solid #cbd5e1;">
+                          {% for slot in slots %}
+                          <div style="flex: 1 1 0; min-width: 0; border-right: 1px solid #e5e7eb; box-sizing: border-box; color: #374151; font-size: 12px; font-weight: 600; text-align: center;" class="px-1">{{ slot.display_label }}</div>
+                          {% endfor %}
+                      </div>
+                  </div>
+                  {% for item in technicians%}
+                  <div class="col-4 mb-1 calendar-technician-entry" data-technician="{{ item.email }}"
+                      style="border-bottom: 1px solid #000; border-right: 1px solid #000;">
+                      <div class="d-flex schedule-user-row calendar-technician-select" data-technician="{{ item.email }}"
+                          role="button" tabindex="0" aria-label="Show next 7 days schedule for {{ item.email }}" aria-expanded="false">
+                          <div class="schedule-user-avatar-slot" data-technician-name="{{ item.full_name }}">
+                              <span class="schedule-user-avatar-fallback" aria-hidden="true"></span>
+                              {% if item.user_image %}
+                              <img class="schedule-user-avatar" src="{{ item.user_image }}" alt="">
+                              {% endif %}
+                          </div>
+                          <div class="schedule-user-details">{{ item.full_name }}<br><small>{{ item.email }}</small></div>
+                          <div class="schedule-user-percentage">{{ item.total_hours }} %</div>
+                      </div>
+                  </div>
+                  <div class="col-8 mb-1 d-flex scrollable-x calendar-technician-entry" data-technician="{{ item.email }}"
+                      style="width: 100%; overflow-x: auto; white-space: nowrap; align-items: center;">
+                      <div class="d-flex" style="width: 100%;">
+                          {{ item.html_content }}
+                      </div>
+                  </div>
+                  {% endfor %}
+              </div>
+          </div>
+      </div>
+      <div class="technician-panel-resizer" id="technician-panel-resizer" role="separator"
+          aria-label="Resize calendar and technician schedule" aria-orientation="vertical"
+          aria-valuemin="280" aria-valuemax="600" aria-valuenow="330" tabindex="0" hidden></div>
+      <section class="technician-day-visit-panel" id="technician-day-visit-panel" hidden aria-live="polite">
+          <div class="d-flex align-items-center justify-content-between mb-2" style="gap: 12px;">
+              <div>
+                  <h6 class="mb-0" id="technician-day-visit-title">Technician schedule</h6>
+                  <small class="text-muted">Next 7 Days, in scheduled order</small>
+              </div>
+              <button class="btn btn-sm btn-default" type="button" id="close-technician-day-visits" aria-label="Close technician schedule">&times;</button>
+          </div>
+          <div class="technician-day-visit-list" id="technician-day-visit-list"></div>
+      </section>
+  </div>
+</div>
+</div>
+<div class="board-map-resizer" id="board-map-resizer" role="separator"
+    aria-label="Resize board and map panels" aria-orientation="vertical"
+    aria-valuemin="380" aria-valuemax="900" aria-valuenow="560" tabindex="0" hidden></div>
+<section class="expedition-board-map-section" id="expedition-board-map-section" hidden>
+    <div class="expedition-board-map-header d-flex align-items-center justify-content-between mb-2">
+        <div>
+            <h5 class="board-section-title mb-1">Visit map &amp; live technician locations</h5>
+            <span class="technician-live-location-status" id="technician-live-location-status" data-state="idle"
+                aria-live="polite">Waiting for technician GPS locations</span>
+        </div>
+        <div class="d-flex align-items-center map-header-actions">
+            <form class="map-technician-search" id="map-technician-search-form" role="search">
+                <label class="sr-only" for="map-technician-search">Find technician on map</label>
+                <input id="map-technician-search" type="search" list="map-technician-search-options"
+                    autocomplete="off" placeholder="Find technician or user ID" aria-label="Find technician on map">
+                <datalist id="map-technician-search-options"></datalist>
+                <button type="submit">Locate</button>
+            </form>
+        </div>
+        <button type="button" class="expedition-board-map-close" id="close-expedition-board-map"
+            aria-label="Close map" title="Close map">&times;</button>
+    </div>
+    <nav class="map-date-range-toolbar" aria-label="Route plan date range">
+        <div class="map-date-range-buttons">
+            <span class="map-date-range-label">Route plan</span>
+            <button type="button" class="map-date-range-button" data-map-range="today" aria-pressed="false">Today</button>
+            <button type="button" class="map-date-range-button" data-map-range="tomorrow" aria-pressed="false">Tomorrow</button>
+            <button type="button" class="map-date-range-button" data-map-range="yesterday" aria-pressed="false">Yesterday</button>
+            <button type="button" class="map-date-range-button" data-map-range="next7" aria-pressed="true">Next 7 Days</button>
+            <button type="button" class="map-date-range-button" data-map-range="last7" aria-pressed="false">Last 7 Days</button>
+        </div>
+        <span class="map-date-range-summary" id="map-date-range-summary" aria-live="polite">Next 7 days’ visits</span>
+    </nav>
+    <div id="expedition-board-map-host" class="expedition-board-map-host" aria-label="Expedition live map"></div>
+    <div class="board-map-floating-move" id="board-map-floating-move" role="button"
+        aria-label="Move map panel" title="Drag to move map" tabindex="0" hidden></div>
+    <div class="board-map-floating-resize board-map-floating-resize-x" id="board-map-floating-resize-x"
+        role="separator" aria-label="Resize map width" aria-orientation="vertical" tabindex="0" hidden></div>
+    <div class="board-map-floating-resize board-map-floating-resize-y" id="board-map-floating-resize-y"
+        role="separator" aria-label="Resize map height" aria-orientation="horizontal" tabindex="0" hidden></div>
+    <div class="board-map-floating-resize board-map-floating-resize-corner" id="board-map-floating-resize-corner"
+        role="separator" aria-label="Resize map width and height" tabindex="0" hidden></div>
+</section>
+<div class="modal visit-assignment-modal hide" id="visit-assign-modal" tabindex="-1" role="dialog"
+    aria-labelledby="visit-assign-title" aria-hidden="true">
+    <div class="modal-dialog schedule-board-form-dialog" role="document">
+        <div class="modal-content schedule-board-form-content">
+            <div class="modal-header schedule-board-form-header">
+                <div>
+                    <div class="calendar-task-kicker">Schedule maintenance visit</div>
+                    <h5 class="modal-title" id="visit-assign-title">Maintenance visit</h5>
+                </div>
+                <button type="button" class="close" id="close-visit-assign" aria-label="Close assignment dialog">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body schedule-board-form-body">
+                <form id="visit-assign-form" class="calendar-task-form" method="POST">
+                    <input type="hidden" id="visit-assign-code" name="code">
+                    <div class="calendar-task-field-group">
+                        <label class="calendar-task-label" for="visit-assign-code-display">Maintenance visit code</label>
+                        <input id="visit-assign-code-display" class="form-control calendar-task-readonly" type="text" readonly>
+                    </div>
+                    <div class="calendar-task-field-group">
+                        <label class="calendar-task-label" for="visit-assign-technician">Co-technicians <span class="calendar-task-help">Optional, use when more than one technician is needed</span></label>
+                        <select id="visit-assign-technician" class="form-control form-select technician" name="technician[]" multiple="multiple" size="4" style="width: 100%;" required>
+                            {% for tech in technicians %}
+                            <option value="{{ tech.email }}">{{ tech.full_name || tech.email }} ({{ tech.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="calendar-task-time-grid">
+                        <div class="calendar-task-field-group">
+                            <label class="calendar-task-label" for="visit-assign-date">Date</label>
+                            <input id="visit-assign-date" class="form-control" type="date" name="date" required>
+                        </div>
+                        <div class="calendar-task-field-group">
+                            <label class="calendar-task-label" for="visit-assign-start">Start time</label>
+                            <input id="visit-assign-start" class="form-control" type="time" name="stime" step="1800" required>
+                        </div>
+                        <div class="calendar-task-field-group">
+                            <label class="calendar-task-label" for="visit-assign-end">End time</label>
+                            <input id="visit-assign-end" class="form-control" type="time" name="etime" step="1800" required>
+                        </div>
+                    </div>
+                    <div class="calendar-task-error" id="visit-assign-error" role="alert" aria-live="polite"></div>
+                    <div class="calendar-task-footer">
+                        <button type="button" class="calendar-task-cancel" id="cancel-visit-assign">Cancel</button>
+                        <button type="submit" class="calendar-task-submit" id="submit-visit-assign">Schedule visit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

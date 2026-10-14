@@ -82,7 +82,9 @@ def get_items_for_address(doctype, txt, searchfield, start, page_len, filters):
 
     # Return the items in the expected format (value and description)
     return [
-        (item["item_code"], f"{item['item_name']} | {item["item_code"]}", item["name"])  # Passing the whole item object
+        # OLD: The item_code expression used double quotes inside a
+        # double-quoted f-string, which made the module fail to import.
+        (item["item_code"], f"{item['item_name']} | {item['item_code']}", item["name"])
         for item in items
     ]
 

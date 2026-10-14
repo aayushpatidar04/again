@@ -147,32 +147,6 @@ override_whitelisted_methods = {
 # 	}
 # }
 
-# Scheduled Tasks
-# ---------------
-
-# scheduler_events = {
-# 	"all": [
-# 		"field_service_management.tasks.all"
-# 	],
-# 	"daily": [
-# 		"field_service_management.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"field_service_management.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"field_service_management.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"field_service_management.tasks.monthly"
-# 	],
-# }
-
-# Testing
-# -------
-
-# before_tests = "field_service_management.install.before_tests"
-
 # Overriding Methods
 # ------------------------------
 #
