@@ -2566,7 +2566,9 @@
       min-width: 0;
   }
   .schedule-board-workspace.is-map-open .visit-filter-group {
+      align-content: start;
       display: grid;
+      flex: 0 0 auto;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       justify-content: stretch;
       width: 100%;
@@ -3052,6 +3054,22 @@
   /* The shared card rail uses a 100% flex basis for the normal board. In the
      docked map layout, reserve real space for the calendar below the queue. */
   @media (min-width: 1180px) {
+      .schedule-board-workspace.is-map-open .visits-panel .visit-list-toolbar {
+          display: block;
+          flex: 0 0 auto;
+          margin-bottom: 8px;
+      }
+      .schedule-board-workspace.is-map-open .visits-panel .visit-list-toolbar > div:first-child {
+          width: 100%;
+      }
+      .schedule-board-workspace.is-map-open .visits-panel .visit-filter-group {
+          align-content: start;
+          display: grid;
+          flex: 0 0 auto;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          margin-top: 10px;
+          width: 100%;
+      }
       .schedule-board-workspace.is-map-open .schedule-board-canvas {
           height: calc(100dvh - 125px);
           min-height: 0;

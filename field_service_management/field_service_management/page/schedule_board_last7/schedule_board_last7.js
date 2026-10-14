@@ -942,6 +942,18 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
        };
        legendDock.addEventListener('pointerup', finish);
        legendDock.addEventListener('pointercancel', finish);
+       if (typeof ResizeObserver === 'function') {
+           const keepLegendVisible = new ResizeObserver(function () {
+               if (pointerId !== null || !host.clientWidth || !host.clientHeight ||
+                   !legendDock.classList.contains('is-board-dragged')) return;
+               moveTo(
+                   parseFloat(legendDock.style.getPropertyValue('--board-legend-left')),
+                   parseFloat(legendDock.style.getPropertyValue('--board-legend-top'))
+               );
+           });
+           keepLegendVisible.observe(host);
+           keepLegendVisible.observe(legendDock);
+       }
    }
 
    async function mountExpeditionBoardMap() {
