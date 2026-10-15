@@ -262,12 +262,37 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
    let nativeTodayBoardLayerNames = [];
    let nativeTodayBoardLayers = [];
 
-   function refreshNativeTodayBoardLayers() {
+   function isNativeMapLayerVisible(visitType) {
+       const layer = nativeTodayBoardLayers.find(function (item) {
+           return visitType
+               ? item.visit_type === visitType
+               : !item.visit_type && /technician|user|live location/i.test(String(item.title || ''));
+       });
+       if (!layer) return true;
+       const legend = document.querySelector('#expedition-board-map-host .legend');
+       if (!legend) return true;
+       const chip = Array.from(legend.querySelectorAll('.legend__chip:not(.legend__chip--all)'))
+           .find(function (button) {
+               return button.getAttribute('aria-label') === `Toggle ${layer.title || layer.name}`;
+           });
+       return !chip || !chip.classList.contains('legend__chip--disabled');
+   }
+
+   function syncNativeMapMarkerVisibility() {
+       const map = window.expeditionMap?.getMap?.();
+       if (!map) return;
+       renderMapVisitDomMarkers(map, mapVisitFeatures);
+       renderLiveTechnicianDomMarkers(map, liveTechnicianFeatures);
+   }
+
+   function refreshNativeTodayBoardLayers(kind) {
        const range = getMapDateRange(selectedMapDateRange);
-       nativeTodayBoardLayerNames.forEach(function (layerName) {
+       nativeTodayBoardLayers.filter(function (layer) {
+           return kind === 'technicians' ? !layer.visit_type : kind === 'visits' ? !!layer.visit_type : true;
+       }).forEach(function (layer) {
            window.dispatchEvent(new CustomEvent('expedition:refresh-layer', {
                detail: {
-                   layerName: layerName,
+                   layerName: layer.name,
                    context: { map_start_date: range.start, map_end_date: range.end },
                },
            }));
@@ -418,7 +443,8 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
        }
        overlay.textContent = '';
        mapVisitFeatures.filter(function (feature) {
-           return !hiddenMapVisitTypes.has(feature.properties?.type || 'Not specified');
+           const type = feature.properties?.type || 'Not specified';
+           return !hiddenMapVisitTypes.has(type) && isNativeMapLayerVisible(type);
        }).forEach(function (feature) {
            const point = map.project(feature.geometry.coordinates);
            const properties = feature.properties || {};
@@ -567,7 +593,7 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
        }
 
        overlay.textContent = '';
-       if (!techniciansVisibleOnMap) return true;
+       if (!techniciansVisibleOnMap || !isNativeMapLayerVisible(null)) return true;
        liveTechnicianFeatures.forEach(function (feature) {
            const point = map.project(feature.geometry.coordinates);
            const properties = feature.properties || {};
@@ -697,7 +723,7 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
        // Expedition owns data retrieval for the native Technician layer.
        // Reading that layer removes the old duplicate request and guarantees
        // Locate, status, pins, and native visibility controls use one feed.
-       refreshNativeTodayBoardLayers();
+       refreshNativeTodayBoardLayers('technicians');
        const technicianLayer = nativeTodayBoardLayers.find(function (layer) {
            return /technician|user|live location/i.test(String(layer.title || ''));
        });
@@ -737,7 +763,7 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                mapVisitFeatures = features;
                renderMapVisitTypeFilters(features);
                renderMapVisitDomMarkers(map, features);
-               refreshNativeTodayBoardLayers();
+               refreshNativeTodayBoardLayers('visits');
                const summary = document.getElementById('map-date-range-summary');
                if (summary) summary.textContent = `${range.label} · ${features.length} visit${features.length === 1 ? '' : 's'}`;
            },
@@ -819,8 +845,11 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                    }
                    liveTechnicianMap = map;
                    liveTechnicianStyleHandler = function () {
-                       if (!document.getElementById('expedition-board-map-section')?.hidden
-                           && ensureLiveTechnicianLayers(map)) refreshLiveTechnicianLocations();
+                       // Style updates happen repeatedly while map layers load.
+                       // Restore the old overlay visibility without issuing API calls.
+                       if (!document.getElementById('expedition-board-map-section')?.hidden) {
+                           ensureLiveTechnicianLayers(map);
+                       }
                    };
                    map.on('styledata', liveTechnicianStyleHandler);
                }
@@ -918,6 +947,16 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
        }
        if (legendDock.dataset.boardDragInitialized === '1') return;
        legendDock.dataset.boardDragInitialized = '1';
+       // The native legend changes layer visibility, while these pins live in
+       // board-owned DOM overlays. Keep both representations in sync.
+       const visibilityObserver = new MutationObserver(syncNativeMapMarkerVisibility);
+       visibilityObserver.observe(legendDock, {
+           subtree: true,
+           childList: true,
+           attributes: true,
+           attributeFilter: ['class'],
+       });
+       syncNativeMapMarkerVisibility();
        let pointerId = null;
        let origin = null;
        const clamp = function (left, top) {

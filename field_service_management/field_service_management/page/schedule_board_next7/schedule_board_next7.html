@@ -873,6 +873,20 @@
       }
   }
 
+  /* Keep the global navigation and board actions within a comfortable
+     reading width on ultrawide monitors, without narrowing the planning area. */
+  @media (min-width: 2200px) {
+      body:where([data-route^="schedule-board-"], [data-route="schedule-tomorrow"]) .navbar > .container,
+      .schedule-board-page-head-container {
+          margin-left: auto !important;
+          margin-right: auto !important;
+          max-width: 2800px !important;
+          width: calc(100% - 64px) !important;
+      }
+      .schedule-board-page-head .title-area { padding-left: 0; }
+      .schedule-board-page-head .page-actions { padding-right: 0; }
+  }
+
   .visit-summary-grid {
       gap: 14px;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
