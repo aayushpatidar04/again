@@ -188,8 +188,10 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
        const stack = $('.board-sections-stack').get(0);
        if (!stack) return;
        const minimumHeight = 190;
-       const minimumCalendarHeight = $('.schedule-board-workspace').hasClass('is-map-open') ? 220 : 368;
-       const maximumHeight = Math.min(480, stack.clientHeight - minimumCalendarHeight);
+       const mapIsOpen = $('.schedule-board-workspace').hasClass('is-map-open');
+       // Without the map, the stack grows with its contents; subtracting a fixed
+       // calendar allowance from that height traps users with few technicians.
+       const maximumHeight = mapIsOpen ? Math.min(480, stack.clientHeight - 220) : 480;
        if (maximumHeight < minimumHeight) return;
 
        const safeHeight = Math.max(minimumHeight, Math.min(maximumHeight, height));
