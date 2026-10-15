@@ -991,6 +991,13 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                        height: 100% !important;
                        min-height: 0 !important;
                    }
+                   /* The board is pinned to its field-operations map. The
+                      standalone map workspace is not part of this view. */
+                   #expedition-board-map-host .expedition__tl,
+                   #expedition-board-map-host .expedition__left,
+                   #expedition-board-map-host .cp {
+                       display: none !important;
+                   }
                    /* Keep Expedition's native legend/toggles useful without
                       allowing a long list of visit types to cover the map. */
                    #expedition-board-map-host .expedition__bc {
@@ -1044,6 +1051,22 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                document.head.appendChild(embedStyle);
            }
 
+           if (!document.__scheduleBoardMapKeyGuard) {
+               document.__scheduleBoardMapKeyGuard = function (event) {
+                   const boardMap = document.getElementById('expedition-board-map-host');
+                   if (!boardMap || boardMap.dataset.expeditionMounted !== '1' || !boardMap.getClientRects().length) return;
+                   const key = String(event.key || '').toLowerCase();
+                   const editable = event.target?.closest?.('input, textarea, [contenteditable="true"]');
+                   const opensMapWorkspace = !editable && !event.altKey && !event.ctrlKey && !event.metaKey && key === 'm';
+                   const opensMapPalette = !editable && (event.ctrlKey || event.metaKey) && key === 'k';
+                   if (opensMapWorkspace || opensMapPalette) {
+                       event.preventDefault();
+                       event.stopImmediatePropagation();
+                   }
+               };
+               document.addEventListener('keydown', document.__scheduleBoardMapKeyGuard, true);
+           }
+
            host.textContent = '';
            const mapRoot = document.createElement('div');
            mapRoot.style.height = '100%';
@@ -1053,6 +1076,9 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                method: 'field_service_management.field_service_management.page.api.ensure_today_board_expedition_map',
            });
            const mapConfig = mapConfigResponse?.message || {};
+           if (!mapConfig.name) {
+               throw new Error('The dedicated schedule-board map is unavailable.');
+           }
            nativeTodayBoardLayers = (Array.isArray(mapConfig.layers) ? mapConfig.layers : [])
                .map(function (layer) {
                    return typeof layer === 'string'
@@ -1068,15 +1094,15 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
            });
            const app = window.expedition.mount(mapRoot, {
                embedded: true,
-               mapName: mapConfig.name || 'rerbv0jr65',
-               mapTitle: mapConfig.title || 'BMS Field Service Dispatch',
+               mapName: mapConfig.name,
+               mapTitle: mapConfig.title,
            });
            if (!app) throw new Error('Expedition did not mount into the map panel.');
            host.dataset.expeditionMounted = '1';
            setupNativeLegendDrag(host);
        } catch (error) {
            console.error('Unable to load Expedition map:', error);
-           host.textContent = 'Unable to load the Expedition map. Please check that the Expedition app is installed and built.';
+           host.textContent = 'Board map unavailable. Ask an administrator to check its field-operations layers and your map access.';
        } finally {
            delete host.dataset.expeditionMountStarted;
        }
@@ -1112,7 +1138,7 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
    }
 
    function hydrateRichTextDescriptions() {
-       document.querySelectorAll('.maintenance-description-value').forEach(function (node) {
+       document.querySelectorAll('.maintenance-description-value, .maintenance-comment-value').forEach(function (node) {
            node.innerHTML = renderRichTextForBoard(node.textContent || '');
        });
    }
@@ -2189,7 +2215,7 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                + `<h5>Spare Items</h5>${table(['Item Code', 'Description', 'Periodicity', 'UOM'], data.spare_items || [], (row) => `<tr><td>${row.item_code ? visitMasterLink('item', row.item_code) : 'Not specified'}</td><td>${escapeDetailsHtml(row.description || '')}</td><td>${escapeDetailsHtml(row.periodicity || '')}</td><td>${escapeDetailsHtml(row.uom || '')}</td></tr>`, 'No spare items available.')}`;
            const symptomsBody = table(['Item Code', 'Symptom Code', 'Resolution', 'Attach Image', 'Serial No.'], data.symptoms || [], (row) => `<tr><td>${row.item_code ? visitMasterLink('item', row.item_code) : 'Not specified'}</td><td>${escapeDetailsHtml(row.symptom_code || 'Not specified')}</td><td>${escapeDetailsHtml(row.resolution || 'Not specified')}</td><td>${imageCell(row.image, 'Symptom attachment')}</td><td>${row.serial_no ? visitMasterLink('serial-no', row.serial_no) : 'Not specified'}</td></tr>`, 'No symptoms or resolutions are available.');
            const commentsBody = (data.comments || []).length
-               ? data.comments.map((comment) => `<div class="border-bottom mb-3 pb-2"><div>${escapeDetailsHtml(comment.content)}</div><small class="text-muted">${escapeDetailsHtml(comment.comment_by || comment.owner)} · ${escapeDetailsHtml(comment.creation_display)}</small></div>`).join('')
+               ? data.comments.map((comment) => `<div class="border-bottom mb-3 pb-2"><div class="maintenance-comment-value">${renderRichText(comment.content)}</div><small class="text-muted">${escapeDetailsHtml(comment.comment_by || comment.owner)} · ${escapeDetailsHtml(comment.creation_display)}</small></div>`).join('')
                : emptyDetail('No comments are available.');
            const attachmentsBody = (data.attachments || []).length
                ? `<div class="d-flex flex-wrap" style="gap:16px">${data.attachments.map((attachment) => `<figure>${imageCell(attachment.image, attachment.caption || 'Attached image')}${attachment.caption ? `<figcaption>${escapeDetailsHtml(attachment.caption)}</figcaption>` : ''}</figure>`).join('')}</div>`
@@ -3124,6 +3150,38 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                } else {
                    closedModal.removeClass('show').addClass('hide');
                }
+           });
+
+           $(document).on('click', '.calendar-task-unassign', function (event) {
+               event.preventDefault();
+               event.stopPropagation();
+               const button = $(this);
+               const visitName = String(button.attr('data-visit') || '').trim();
+               if (!visitName) return;
+               frappe.confirm(
+                   'Send ' + visitName + ' back to the scheduler? This removes all technician bookings for this visit.',
+                   function () {
+                       button.prop('disabled', true).text('Sending back...');
+                       frappe.call({
+                           method: 'field_service_management.field_service_management.page.api.send_visit_back_to_scheduler',
+                           args: { visit_name: visitName },
+                           callback: function (response) {
+                               if (response && response.message && response.message.success) {
+                                   window.location.reload();
+                                   return;
+                               }
+                               button.closest('.modal').find('.etime-error')
+                                   .text((response && response.message && response.message.message) || 'Could not return this visit to the scheduler.');
+                               button.prop('disabled', false).text('Send back to scheduler');
+                           },
+                           error: function () {
+                               button.closest('.modal').find('.etime-error')
+                                   .text('Could not return this visit to the scheduler.');
+                               button.prop('disabled', false).text('Send back to scheduler');
+                           },
+                       });
+                   }
+               );
            });
 
 

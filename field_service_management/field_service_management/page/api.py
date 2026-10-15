@@ -141,6 +141,40 @@ def get_visible_schedule_board_visit_names(visit_names):
     return set(frappe.get_all("Maintenance Visit", filters=filters, pluck="name"))
 
 
+def assert_editable_schedule_board_visit(visit_name):
+    """Require board visibility and document write access for assignment changes."""
+    visit_name = (visit_name or "").strip()
+    if not visit_name or visit_name not in get_visible_schedule_board_visit_names([visit_name]):
+        frappe.throw(_("This Maintenance Visit is not available on your schedule board."), frappe.PermissionError)
+
+    visit = frappe.get_doc("Maintenance Visit", visit_name)
+    if not frappe.has_permission("Maintenance Visit", "write", doc=visit):
+        frappe.throw(_("You cannot change this Maintenance Visit's assignment."), frappe.PermissionError)
+    return visit
+
+
+@frappe.whitelist()
+def send_visit_back_to_scheduler(visit_name):
+    """Remove every technician booking for a visit and return it to the queue."""
+    visit = assert_editable_schedule_board_visit(visit_name)
+    visit_name = visit.name
+
+    task_names = frappe.get_all(
+        "Assigned Tasks", filters={"issue_code": visit_name}, pluck="name"
+    )
+    if not task_names and (visit.get("_assign") or "").strip() in ("", "[]", "null"):
+        frappe.throw(_("This Maintenance Visit is already unassigned."), frappe.ValidationError)
+
+    for task_name in task_names:
+        frappe.delete_doc("Assigned Tasks", task_name, force=True, ignore_permissions=True)
+
+    values = {"_assign": "", "custom_scheduling_status": "Unscheduled"}
+    if task_names and visit.get("visit_count") is not None:
+        values["visit_count"] = max(int(visit.visit_count or 0) - 1, 0)
+    frappe.db.set_value("Maintenance Visit", visit_name, values)
+    return {"success": True, "visit_name": visit_name}
+
+
 @frappe.whitelist()
 def get_schedule_board_queue_rows(assignment_status="assigned"):
     """Load assigned/all queue rows only when a user selects those filters."""
@@ -648,6 +682,7 @@ def ensure_today_board_expedition_map():
     create, delete, or rewrite layer documents here: administrators can add,
     remove, reorder, enable, and configure layers from Expedition itself.
     """
+    scope = _get_schedule_board_scope()
     if not frappe.db.exists("DocType", "Expedition Map"):
         return {"name": None, "title": None}
 
@@ -666,15 +701,35 @@ def ensure_today_board_expedition_map():
         })
         map_doc.insert(ignore_permissions=True)
 
+    from expedition.api.map import list_for_user
+    from expedition.api.permission import map_permission
+    available_maps = {row.name for row in list_for_user(include_public=1)}
+    if not map_permission(map_doc.name, "read") or map_doc.name not in available_maps:
+        frappe.throw(
+            _("You do not have permission to open the schedule-board map."),
+            frappe.PermissionError,
+        )
+
     layer_configs = []
     for row in sorted(map_doc.get("layers", []), key=lambda item: item.sequence or 0):
         if not row.enabled or not row.layer or not frappe.db.exists("Expedition Layer", row.layer):
             continue
         layer = frappe.get_doc("Expedition Layer", row.layer)
+        visit_type = _configured_board_visit_type(layer)
+        is_technician_layer = (
+            layer.data_source_type == "Client Script (JS)"
+            and "get_live_technicians" in (layer.js_script or "")
+        )
+        if not scope["is_admin"] and not (visit_type or is_technician_layer):
+            frappe.throw(
+                _("The schedule-board map contains a layer outside field operations. "
+                  "Ask an administrator to remove it before using the map."),
+                frappe.PermissionError,
+            )
         layer_configs.append({
             "name": row.layer,
             "title": layer.title or row.layer,
-            "visit_type": _configured_board_visit_type(layer),
+            "visit_type": visit_type,
             "sequence": row.sequence or 0,
             "enabled": 1,
         })

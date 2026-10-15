@@ -5,6 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 from field_service_management.field_service_management.page.api import (
     _get_schedule_board_scope,
+    assert_editable_schedule_board_visit,
     assert_visible_schedule_board_technician,
     get_visible_schedule_board_visit_names,
 )
@@ -911,12 +912,13 @@ def get_context(context=None):
                                          <input id="stime-{issue_code}" class="form-control stime calendar-task-readonly" type="time" name="stime" value="{stime}" required readonly>
                                      </div>
                                      <div class="calendar-task-field-group">
-                                         <label class="calendar-task-label" for="etime-{issue_code}">End time</label>
-                                         <input id="etime-{issue_code}" class="form-control etime" type="time" name="etime" value="{etime}" required readonly step="1800">
+                                         <label class="calendar-task-label" for="etime-{issue_code}">End time <span class="calendar-task-help">Adjust if work runs longer</span></label>
+                                         <input id="etime-{issue_code}" class="form-control etime" type="time" name="etime" value="{etime}" required step="1800">
                                      </div>
                                  </div>
                                  <div class="calendar-task-error"><small><span class="text-danger etime-error"></span></small></div>
                                  <div class="calendar-task-footer">
+                                     <button type="button" class="calendar-task-unassign" data-visit="{issue_code}">Send back to scheduler</button>
                                      <button type="button" class="calendar-task-cancel">Cancel</button>
                                      <button type="button" class="update btn calendar-task-submit"
                                          data-issue="{issue_code}">Save changes</button>
@@ -1446,6 +1448,7 @@ def save_form_data(form_data):
      form_data = json.loads(form_data)
      technicians = form_data["technicians"]
      code = form_data["code"]
+     assert_editable_schedule_board_visit(code)
      date = form_data["date"]
      etime = form_data["etime"]
      stime = form_data["stime"]
@@ -1532,6 +1535,7 @@ def update_form_data(form_data):
      form_data = json.loads(form_data)
      technicians = form_data["technicians"]
      code = form_data["code"]
+     assert_editable_schedule_board_visit(code)
      date = form_data["date"]
      etime = form_data["etime"]
      stime = form_data["stime"]

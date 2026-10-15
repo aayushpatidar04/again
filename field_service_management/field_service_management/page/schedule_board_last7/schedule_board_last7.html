@@ -235,6 +235,7 @@
       background: #fbfcfe;
       border-top: 1px solid #e6eaf0;
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       justify-content: flex-end;
       margin: 2px -24px -10px;
@@ -271,6 +272,26 @@
       background: #921b12;
       border-color: #921b12;
       color: #fff;
+  }
+
+
+  .calendar-task-unassign {
+      background: #fff;
+      border: 1px solid #d92d20;
+      border-radius: 9px;
+      color: #b42318;
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: auto;
+      min-height: 40px;
+      padding: 8px 12px;
+  }
+
+
+  .calendar-task-unassign:hover,
+  .calendar-task-unassign:focus {
+      background: #fff3f1;
+      color: #912018;
   }
 
 
@@ -3713,7 +3734,7 @@
                           {% if issue.comments && issue.comments.length %}
                           {% for comment in issue.comments %}
                           <div class="border-bottom mb-3 pb-2">
-                              <div>{{ comment.content }}</div>
+                              <div class="maintenance-comment-value">{{ comment.content }}</div>
                               <small class="text-muted">{{ comment.comment_by || comment.owner }} · {{ comment.creation_display }}</small>
                           </div>
                           {% endfor %}
