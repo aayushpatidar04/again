@@ -1910,11 +1910,13 @@
       border: 1px solid #e5eaf1;
       border-radius: 12px;
       flex: 0 0 auto;
+      flex-wrap: wrap;
+      gap: 12px 20px;
       min-height: 44px;
-      padding: 13px 48px 13px 16px;
+      padding: 13px 64px 13px 16px;
       position: relative;
   }
-  .map-header-actions { margin-left: auto; }
+  .map-header-actions { flex: 1 1 340px; margin-left: auto; min-width: 0; max-width: 470px; }
   .map-date-range-toolbar {
       align-items: center;
       background: #fff;
@@ -1957,9 +1959,9 @@
   .map-technician-search {
       align-items: center;
       display: flex;
-      gap: 6px;
-      margin-left: 16px;
-      min-width: min(330px, 38vw);
+      gap: 10px;
+      min-width: 0;
+      width: 100%;
   }
   .map-technician-search input {
       background: #fff;
@@ -2988,7 +2990,7 @@
       .expedition-board-map-header { gap: 8px; }
       .expedition-board-map-header .board-section-title { font-size: 16px; }
       .expedition-board-map-header .board-section-subtitle { font-size: 11px; }
-      .map-technician-search { margin-left: 0; min-width: 180px; }
+      .map-header-actions { max-width: none; }
       .map-visit-type-filters { gap: 6px; }
       .board-map-floating-move { height: 40px; width: 28px; }
       .board-map-floating-resize-x { width: 14px; }
