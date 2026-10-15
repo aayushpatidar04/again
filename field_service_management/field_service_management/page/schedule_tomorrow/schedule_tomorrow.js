@@ -24,17 +24,11 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
 
    const scheduleBoardRoutes = [
        { label: __('Today'), route: '/app/schedule-board-today' },
-       { label: __('Yesterday'), route: '/app/schedule-board-yeste' },
        { label: __('Tomorrow'), route: '/app/schedule-tomorrow' },
-       { label: __('Last 7 Days'), route: '/app/schedule-board-last7' },
-       { label: __('Next 7 Days'), route: '/app/schedule-board-next7' }
+       { label: __('Yesterday'), route: '/app/schedule-board-yeste' },
+       { label: __('Next 7 Days'), route: '/app/schedule-board-next7' },
+       { label: __('Last 7 Days'), route: '/app/schedule-board-last7' }
    ];
-   scheduleBoardRoutes.forEach(function (board) {
-       page.add_inner_button(board.label, function () {
-           window.location.href = board.route;
-       }, __('Select Day'));
-   });
-
    const mapAction = page.add_inner_button(__('Map'), function () {});
    mapAction.attr({
        id: 'toggle-expedition-board-map',
@@ -43,8 +37,17 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
        title: 'Show Expedition map'
    }).addClass('schedule-board-map-toggle').removeClass('ellipsis')
        .html('<svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>');
-   const selectDayGroup = page.get_inner_group_button(__('Select Day'));
-   if (selectDayGroup.length) mapAction.insertBefore(selectDayGroup);
+   const boardNavigation = $('<nav class="schedule-board-navigation" aria-label="Schedule board period"></nav>')
+       .insertAfter(mapAction);
+   scheduleBoardRoutes.forEach(function (board) {
+       const button = page.add_inner_button(board.label, function () {
+           window.location.href = board.route;
+       }).addClass('schedule-board-nav-button').removeClass('ellipsis');
+       if (window.location.pathname.replace(/\/$/, '') === board.route) {
+           button.addClass('is-active').attr('aria-current', 'page');
+       }
+       boardNavigation.append(button);
+   });
 
 
 
@@ -447,14 +450,23 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
            : 'time unavailable';
    }
 
+   function mapTechnicianDisplayLabel(properties) {
+       const email = String(properties.technician || '').trim();
+       const name = String(properties.technician_name || properties.name || '').trim();
+       return name && email && name.toLowerCase() !== email.toLowerCase()
+           ? `${name} (${email})`
+           : name || email || 'Technician';
+   }
+
    function populateMapTechnicianSearchOptions(features) {
        const options = document.getElementById('map-technician-search-options');
        if (!options) return;
        const values = new Set();
        (Array.isArray(features) ? features : []).forEach(function (feature) {
            const properties = feature.properties || {};
-           if (properties.name) values.add(String(properties.name));
-           if (properties.technician) values.add(String(properties.technician));
+           if (properties.technician || properties.technician_name || properties.name) {
+               values.add(mapTechnicianDisplayLabel(properties));
+           }
        });
        options.textContent = '';
        Array.from(values).sort(function (left, right) {
@@ -471,11 +483,12 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
        if (!normalizedQuery) return null;
        const searchableValue = function (feature) {
            const properties = feature.properties || {};
-           return `${properties.name || ''} ${properties.technician || ''}`.toLowerCase();
+           return `${mapTechnicianDisplayLabel(properties)} ${properties.technician_name || ''} ${properties.technician || ''}`.toLowerCase();
        };
        const exact = liveTechnicianFeatures.find(function (feature) {
            const properties = feature.properties || {};
-           return String(properties.name || '').toLowerCase() === normalizedQuery
+           return mapTechnicianDisplayLabel(properties).toLowerCase() === normalizedQuery
+               || String(properties.technician_name || properties.name || '').toLowerCase() === normalizedQuery
                || String(properties.technician || '').toLowerCase() === normalizedQuery;
        });
        return exact || liveTechnicianFeatures.find(function (feature) {
@@ -520,7 +533,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
        const properties = feature.properties || {};
        const demoNote = properties.is_demo ? ' · DEMO LOCATION' : '';
        setTechnicianLocationStatus(
-           `${properties.technician || properties.name || 'Technician'} · last GPS update ${markerTime(feature)}${demoNote}`,
+           `${mapTechnicianDisplayLabel(properties)} · last GPS update ${markerTime(feature)}${demoNote}`,
            properties.is_demo ? 'demo' : (properties.is_fresh ? 'live' : 'stale')
        );
    }
@@ -542,7 +555,7 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
        liveTechnicianFeatures.forEach(function (feature) {
            const point = map.project(feature.geometry.coordinates);
            const properties = feature.properties || {};
-           const technicianId = properties.technician || properties.name || 'Technician';
+           const technicianId = mapTechnicianDisplayLabel(properties);
            const marker = document.createElement('button');
            marker.type = 'button';
            marker.setAttribute('aria-label', `Show ${technicianId} location details`);

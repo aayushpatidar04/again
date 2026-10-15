@@ -279,7 +279,8 @@ def get_technicians():
 
     query = f"""
     SELECT ll.technician, ll.latitude, ll.longitude, ll.time,
-        ll.employee_name AS technician_name, ll.is_mocked, ll.location_source
+        COALESCE(NULLIF(u.full_name, ''), NULLIF(ll.employee_name, ''), ll.technician) AS technician_name,
+        ll.is_mocked, ll.location_source
     FROM `tabLive Location` ll
     JOIN (
         SELECT technician, MAX(time) AS latest_time

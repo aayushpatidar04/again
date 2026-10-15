@@ -1831,8 +1831,9 @@
   }
 
   #calendar-technician-filter {
-      max-width: 270px;
-      min-width: 245px;
+      max-width: 100%;
+      min-width: 0;
+      width: min(400px, 100%);
   }
 
   .technician-day-visit-panel {
@@ -2369,6 +2370,36 @@
       content: "";
       height: 22px;
       width: 12px;
+  }
+  .schedule-board-navigation {
+      align-items: center;
+      display: inline-flex;
+      gap: 4px;
+      margin-left: 8px;
+      white-space: nowrap;
+  }
+  .schedule-board-navigation .schedule-board-nav-button {
+      background: #f8fafc;
+      border: 1px solid #dbe3ee;
+      border-radius: 8px;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 650;
+      min-height: 34px;
+      padding: 5px 9px;
+  }
+  .schedule-board-navigation .schedule-board-nav-button:hover {
+      background: #fef2f2;
+      border-color: #f2b8b5;
+      color: #a71912;
+  }
+  .schedule-board-navigation .schedule-board-nav-button.is-active {
+      background: #b42318;
+      border-color: #b42318;
+      color: #fff;
+  }
+  @media (max-width: 991px) {
+      .schedule-board-navigation { display: none; }
   }
   .schedule-board-map-toggle {
       align-items: center;
@@ -2907,7 +2938,7 @@
       #visit-status-filter,
       #visit-type-filter { min-width: 0; width: 100%; }
       .calendar-panel .card-header { flex-wrap: wrap; }
-      #calendar-technician-filter { max-width: min(100%, 320px); }
+      #calendar-technician-filter { max-width: min(100%, 400px); }
   }
 
   @media (max-width: 767px) {
@@ -3877,7 +3908,7 @@
                   <select id="calendar-technician-filter" class="visit-filter-control" aria-label="Filter calendar by technician">
                       <option value="">All technicians</option>
                       {% for technician in technicians %}
-                      <option value="{{ technician.email }}">{{ technician.email }}</option>
+                      <option value="{{ technician.email }}">{{ technician.full_name || technician.email }} ({{ technician.email }})</option>
                       {% endfor %}
                   </select>
                   {% if false %}
