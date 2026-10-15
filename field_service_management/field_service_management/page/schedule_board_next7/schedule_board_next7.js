@@ -103,6 +103,15 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
            : assignmentValue === 'assigned' ? 'Assigned visits' : 'Maintenance visits');
    }
 
+   function escapeDetailsHtml(value) {
+       return String(value == null ? '' : value)
+           .replace(/&/g, '&amp;')
+           .replace(/</g, '&lt;')
+           .replace(/>/g, '&gt;')
+           .replace(/"/g, '&quot;')
+           .replace(/'/g, '&#39;');
+   }
+
    let visitQueueRequestId = 0;
    let unassignedVisitQueueMarkup = null;
 
@@ -2090,15 +2099,6 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
        window.addEventListener('expedition:feature-deselected', function () {
            setBoardVisitSelection(null);
        });
-
-       function escapeDetailsHtml(value) {
-           return String(value == null ? '' : value)
-               .replace(/&/g, '&amp;')
-               .replace(/</g, '&lt;')
-               .replace(/>/g, '&gt;')
-               .replace(/"/g, '&quot;')
-               .replace(/'/g, '&#39;');
-       }
 
        function renderRichText(value) {
            const raw = String(value == null ? '' : value).trim();
