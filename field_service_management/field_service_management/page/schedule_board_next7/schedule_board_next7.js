@@ -2038,6 +2038,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
            normalizeCalendarTaskTimeFields(taskModal);
            taskModal.removeClass('hide').addClass('show');
            $('body').addClass('calendar-task-modal-open');
+           refreshAssignmentAvailability(taskModal.find('form').first());
        }
 
 
@@ -2420,6 +2421,18 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
        const schedulingConflictsMethod = 'field_service_management.field_service_management.page.schedule_board_next7.schedule_board_next7.get_scheduling_conflicts';
        let availabilityRequestSequence = 0;
 
+       function lunchWorkPreview(start, end) {
+           const toMinutes = value => {
+               const parts = String(value || '').split(':').map(Number);
+               return parts.length >= 2 && parts.every(Number.isFinite) ? parts[0] * 60 + parts[1] : null;
+           };
+           const startMinutes = toMinutes(start);
+           const endMinutes = toMinutes(end);
+           if (startMinutes === null || endMinutes === null || startMinutes >= 720 || endMinutes <= 780) return '';
+           const workHours = (endMinutes - startMinutes - 60) / 60;
+           return `Work: ${start}–12:00 and 13:00–${end} (${workHours} hours). Lunch 12:00–13:00 remains protected.`;
+       }
+
        function refreshAssignmentAvailability(form) {
            if (!form || !form.length) return;
            let panel = form.find('.calendar-task-availability');
@@ -2436,7 +2449,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
            const date = String(form.find('[name="date"]').val() || '').trim();
            const stime = String(form.find('[name="stime"]').val() || '').trim();
            const etime = String(form.find('[name="etime"]').val() || '').trim();
-           const buttons = form.find('#submit-visit-assign, .submit');
+           const buttons = form.find('#submit-visit-assign, .submit, .update');
            const sequence = ++availabilityRequestSequence;
            form.data('availability-request-sequence', sequence);
 
@@ -2492,7 +2505,13 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
                        .text('Availability could not be checked. The server will validate this assignment when you save.')
                        .prop('hidden', false);
                } else {
-                   panel.prop('hidden', true);
+                   const preview = lunchWorkPreview(stime, etime);
+                   if (preview) {
+                       panel.css({ background: '#eff6ff', border: '1px solid #93c5fd', color: '#1d4ed8' })
+                           .text(preview).prop('hidden', false);
+                   } else {
+                       panel.prop('hidden', true);
+                   }
                }
                buttons.prop('disabled', false);
            });
@@ -3150,16 +3169,16 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
 
 
            function openModal2(issueName, slot, tech, duration, na, slotDate) {
-               const modalId = `taskModal${issueName}`; // Construct the modal ID
+               const modalId = $('#' + issueName).attr('data-modal-id') || `taskModal${issueName}`;
                const modal = $(`#${modalId}`); // Select the modal using jQuery
                if (modal.length) { // Check if the modal exists
                    // const modalInstance = new bootstrap.Modal(modal[0]); // Pass the raw DOM element to bootstrap.Modal
                    // modalInstance.show(); // Show the modal
                    modal.removeClass('hide').addClass('show');
                    const [hours, minutes, seconds] = slot.split(':').map(Number);
-                   let startTime = new Date();
-                   startTime.setHours(hours, minutes, seconds);
-                   let etime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
+                   const startMinutes = hours * 60 + minutes;
+                   let endMinutes = startMinutes + Math.round(Number(duration) * 60);
+                   if (startMinutes < 12 * 60 && endMinutes > 12 * 60) endMinutes += 60;
                    if (hours < 10) {
                        const stime_val = '0' + slot.substring(0, 4)
                        modal.find('.stime').val(stime_val);
@@ -3168,7 +3187,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
                        modal.find('.stime').val(slot.substring(0, 5));
                        modal.find('.etime').data('stime', slot.substring(0, 5));
                    }
-                   modal.find('.etime').val(etime.toTimeString().substring(0, 5));
+                   modal.find('.etime').val(assignmentTimeValue(endMinutes));
                    modal.find('.technician').val(tech).change();
                    if (typeof na === 'string') {
                        try {
@@ -3287,8 +3306,7 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
 
        //update modal
        $(document).on("click", ".update", function () {
-           const issueId = $(this).data("issue");
-           const form = $("#custom2-form-" + issueId);
+           const form = $(this).closest('form');
 
 
            if (!form.find(".etime").val()) {

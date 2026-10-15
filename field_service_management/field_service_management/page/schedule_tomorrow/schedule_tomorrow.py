@@ -9,6 +9,10 @@ from field_service_management.field_service_management.page.api import (
     assert_visible_schedule_board_technician,
     get_visible_schedule_board_visit_names,
 )
+from field_service_management.field_service_management.page.schedule_board_lunch import (
+    spans_lunch,
+    work_intervals,
+)
 
 
 def format_board_datetime(value):
@@ -737,11 +741,29 @@ def get_context(context=None):
 
 
 
- for tech in technicians:
+ for tech_index, tech in enumerate(technicians):
      html_content = ""
      # OLD: Assigned Tasks were queried again for every technician.
-     tasks = tasks_by_technician.get(tech.email, [])
-     unavailable_tasks = hidden_tasks_by_technician.get(tech.email, [])
+     tasks = []
+     for booking in tasks_by_technician.get(tech.email, []):
+         intervals = work_intervals(booking.stime, booking.etime)
+         work_hours = sum((end - start).total_seconds() for start, end in intervals) / 3600
+         for segment_index, (start, end) in enumerate(intervals):
+             segment = frappe._dict(booking.copy())
+             segment.stime = start
+             segment.etime = end
+             segment.booking_stime = booking.stime
+             segment.booking_etime = booking.etime
+             segment.work_duration_in_hours = work_hours
+             segment.show_modal = segment_index == 0
+             tasks.append(segment)
+     unavailable_tasks = []
+     for booking in hidden_tasks_by_technician.get(tech.email, []):
+         for start, end in work_intervals(booking.stime, booking.etime):
+             segment = frappe._dict(booking.copy())
+             segment.stime = start
+             segment.etime = end
+             unavailable_tasks.append(segment)
      for task in tasks:
          time_diff = task.etime - task.stime
          task.duration_in_hours = time_diff.total_seconds() / 3600
@@ -866,14 +888,16 @@ def get_context(context=None):
          if task_in_slot:
              maintenance = get_maintenance_doc(task_in_slot['issue_code'])
              total_hours += task_in_slot['duration_in_hours']
+             modal_id = f"taskModaltask-{task_in_slot['issue_code']}-{tech_index}"
+             card_id = f"task-{task_in_slot['issue_code']}-{tech_index}-{i}"
              html_content += f"""
-             <div style="width: {task_in_slot['duration_in_hours'] * 2 * slot_width_percent}%; background-color: #ef4444; border-right: 1px solid #fff; border-radius: 4px; overflow: hidden; cursor: pointer;" class="px-1 py-2 text-white text-center drag calendar-task-card" data-type="type2" data-issue="{task_in_slot['issue_code']}" draggable="true" id="task-{task_in_slot['issue_code']}" data-duration="{task_in_slot['duration_in_hours']}" data-modal-id="taskModaltask-{task_in_slot['issue_code']}" title="{task_in_slot['issue_code']}" role="button" tabindex="0">
+             <div style="width: {task_in_slot['duration_in_hours'] * 2 * slot_width_percent}%; background-color: #ef4444; border-right: 1px solid #fff; border-radius: 4px; overflow: hidden; cursor: pointer;" class="px-1 py-2 text-white text-center drag calendar-task-card" data-type="type2" data-issue="{task_in_slot['issue_code']}" draggable="true" id="{card_id}" data-duration="{task_in_slot['work_duration_in_hours']}" data-modal-id="{modal_id}" title="{task_in_slot['issue_code']}" role="button" tabindex="0">
                  <a href="javascript:void(0)"
-                     class="text-white" data-id="taskModaltask-{task_in_slot['issue_code']}" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{task_in_slot['issue_code']}</a>
+                     class="text-white" data-id="{modal_id}" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{task_in_slot['issue_code']}</a>
              </div>
              """
-             html_content += f"""
-             <div class="modal calendar-task-modal hide" id="taskModaltask-{task_in_slot['issue_code']}" tabindex="-1" role="dialog"
+             html_content += (f"""
+             <div class="modal calendar-task-modal hide" id="{modal_id}" tabindex="-1" role="dialog"
                  aria-labelledby="taskModalLabel{task_in_slot['issue_code']}" aria-hidden="true">
                  <div class="modal-dialog schedule-board-form-dialog" role="document">
                      <div class="modal-content schedule-board-form-content">
@@ -896,11 +920,14 @@ def get_context(context=None):
                                  <div class="calendar-task-field-group">
                                      <label class="calendar-task-label" for="technician-{task_in_slot['issue_code']}">Co-technicians <span class="calendar-task-help">Optional, use when more than one technician is needed</span></label>
                                  <select id="technician-{task_in_slot['issue_code']}" class="form-select technician" style="width:100%" name="technician[]" multiple="multiple" size="4" required>"""
+                 if task_in_slot['show_modal'] else "")
              for item in technicians:
+                 if not task_in_slot['show_modal']:
+                     continue
                  selected = 'selected' if maintenance._assign and item.email in maintenance._assign else ''
                  technician_label = item.full_name or item.email
                  html_content += f'<option value="{item.email}" {selected}>{technician_label} ({item.email})</option>'
-             html_content += """ </select>
+             html_content += (""" </select>
                                  </div>
                                  <div class="calendar-task-time-grid">
                                      <div class="calendar-task-field-group">
@@ -928,8 +955,9 @@ def get_context(context=None):
                      </div>
                  </div>
              </div>""".format(issue_code=task_in_slot['issue_code'], date=date,
-                               stime=format_board_time(task_in_slot['stime']),
-                               etime=format_board_time(task_in_slot['etime']))
+                               stime=format_board_time(task_in_slot['booking_stime']),
+                               etime=format_board_time(task_in_slot['booking_etime']))
+                 if task_in_slot['show_modal'] else "")
 
 
 
@@ -978,7 +1006,7 @@ def get_context(context=None):
 
 
      tech.html_content = html_content
-     tech.total_hours = round(total_hours / 11 * 100, 2)
+     tech.total_hours = round(total_hours / 10 * 100, 2)
 
 
 
@@ -1410,6 +1438,10 @@ def get_scheduling_conflicts(technician, date, stime=None, etime=None, exclude_i
             })
         for interval in intervals:
             if selected_start < interval["end_minutes"] and selected_end > interval["start_minutes"]:
+                if interval["kind"] == "lunch" and spans_lunch(
+                    timedelta(minutes=selected_start), timedelta(minutes=selected_end)
+                ):
+                    continue
                 selected_conflicts.append({key: value for key, value in interval.items() if not key.endswith("_minutes")})
 
     for interval in intervals:
