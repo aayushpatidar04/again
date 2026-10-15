@@ -3171,6 +3171,16 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
                const button = $(this);
                const visitName = String(button.attr('data-visit') || '').trim();
                if (!visitName) return;
+               const taskModal = button.closest('.calendar-task-modal');
+               const restoreTaskModal = function (message) {
+                   taskModal.removeClass('hide').addClass('show');
+                   $('body').addClass('calendar-task-modal-open');
+                   if (message) taskModal.find('.etime-error').text(message);
+                   button.prop('disabled', false).text('Send back to scheduler');
+               };
+               // The board task modal sits above standard confirmation dialogs.
+               // Hide it while confirming, then restore it on cancel or failure.
+               closeCalendarTaskModal(taskModal);
                frappe.confirm(
                    'Send ' + visitName + ' back to the scheduler? This removes all technician bookings for this visit.',
                    function () {
@@ -3183,17 +3193,16 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
                                    window.location.reload();
                                    return;
                                }
-                               button.closest('.modal').find('.etime-error')
-                                   .text((response && response.message && response.message.message) || 'Could not return this visit to the scheduler.');
-                               button.prop('disabled', false).text('Send back to scheduler');
+                               restoreTaskModal((response && response.message && response.message.message) || 'Could not return this visit to the scheduler.');
                            },
                            error: function () {
-                               button.closest('.modal').find('.etime-error')
-                                   .text('Could not return this visit to the scheduler.');
-                               button.prop('disabled', false).text('Send back to scheduler');
+                               restoreTaskModal('Could not return this visit to the scheduler.');
                            },
                        });
-                   }
+                   },
+                   function () { restoreTaskModal(); },
+                   'Send back',
+                   'Keep assignment'
                );
            });
 
