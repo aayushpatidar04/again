@@ -53,6 +53,17 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
        });
    }
 
+   function setMaintenanceAttachmentRotation(imageUrl, rotation) {
+       $(page.body).find('.maintenance-attachment-image').filter(function () {
+           return $(this).attr('src') === imageUrl;
+       }).attr('data-rotation', rotation).css('transform', 'rotate(' + rotation + 'deg)');
+       try {
+           window.localStorage.setItem('bms-attachment-rotation:' + imageUrl, String(rotation));
+       } catch (error) {
+           // The current view still rotates when browser storage is disabled.
+       }
+   }
+
    $(page.body).on('click', '.maintenance-rotate-image', function (event) {
        event.preventDefault();
        event.stopPropagation();
@@ -63,14 +74,68 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
        const imageUrl = image.attr('src') || '';
        const direction = Number($(this).attr('data-direction')) || 0;
        const rotation = (Number(image.attr('data-rotation') || 0) + direction + 360) % 360;
-       $(page.body).find('.maintenance-attachment-image').filter(function () {
-           return $(this).attr('src') === imageUrl;
-       }).attr('data-rotation', rotation).css('transform', 'rotate(' + rotation + 'deg)');
-       try {
-           window.localStorage.setItem('bms-attachment-rotation:' + imageUrl, String(rotation));
-       } catch (error) {
-           // The current view still rotates when browser storage is disabled.
-       }
+       setMaintenanceAttachmentRotation(imageUrl, rotation);
+   });
+
+   $(page.body).on('click', '.maintenance-attachment-frame a', function (event) {
+       if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+       const anchor = $(this);
+       const thumbnail = anchor.find('.maintenance-attachment-image').first();
+       if (!thumbnail.length) return;
+       const imageUrl = thumbnail.attr('src') || '';
+       if (!imageUrl) return;
+       event.preventDefault();
+       let rotation = Number(thumbnail.attr('data-rotation')) || 0;
+       const viewer = $('<div role="dialog" aria-modal="true" aria-label="Attached image"></div>')
+           .css({ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0, 0, 0, 0.9)',
+               display: 'flex', flexDirection: 'column', padding: '12px' })
+           .appendTo(document.body);
+       const toolbar = $('<div></div>').css({ display: 'flex', justifyContent: 'flex-end',
+           gap: '8px', paddingBottom: '8px' }).appendTo(viewer);
+       const stage = $('<div></div>').css({ position: 'relative', flex: '1 1 auto',
+           minHeight: 0, overflow: 'hidden' }).appendTo(viewer);
+       const image = $('<img alt="Attached image">').attr('src', imageUrl)
+           .css({ position: 'absolute', left: '50%', top: '50%', maxWidth: 'none',
+               maxHeight: 'none', transformOrigin: 'center center' }).appendTo(stage);
+       const closeViewer = function () {
+           $(window).off('resize.maintenanceAttachmentViewer');
+           $(document).off('keydown.maintenanceAttachmentViewer');
+           viewer.remove();
+           anchor.trigger('focus');
+       };
+       const fitImage = function () {
+           const originalWidth = image[0].naturalWidth;
+           const originalHeight = image[0].naturalHeight;
+           if (!originalWidth || !originalHeight) return;
+           const bounds = stage[0].getBoundingClientRect();
+           const sideways = rotation % 180 !== 0;
+           const displayWidth = sideways ? originalHeight : originalWidth;
+           const displayHeight = sideways ? originalWidth : originalHeight;
+           const scale = Math.min(1, (bounds.width - 24) / displayWidth,
+               (bounds.height - 24) / displayHeight);
+           image.css({ width: originalWidth + 'px', height: originalHeight + 'px',
+               transform: 'translate(-50%, -50%) rotate(' + rotation + 'deg) scale(' + scale + ')' });
+       };
+       [-90, 90].forEach(function (direction) {
+           $('<button type="button" class="btn btn-default"></button>')
+               .text(direction < 0 ? 'Rotate left' : 'Rotate right')
+               .on('click', function () {
+                   rotation = (rotation + direction + 360) % 360;
+                   setMaintenanceAttachmentRotation(imageUrl, rotation);
+                   fitImage();
+               }).appendTo(toolbar);
+       });
+       $('<button type="button" class="btn btn-default">Close</button>')
+           .on('click', closeViewer).appendTo(toolbar).trigger('focus');
+       viewer.on('click', function (clickEvent) {
+           if (clickEvent.target === viewer[0]) closeViewer();
+       });
+       $(document).on('keydown.maintenanceAttachmentViewer', function (keyEvent) {
+           if (keyEvent.key === 'Escape') closeViewer();
+       });
+       $(window).on('resize.maintenanceAttachmentViewer', fitImage);
+       image.on('load', fitImage);
+       if (image[0].complete) fitImage();
    });
 
    const scheduleBoardRoutes = [
