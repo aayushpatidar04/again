@@ -519,6 +519,12 @@
   }
 
 
+  .maintenance-technician-notes {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+  }
+
   .maintenance-inline-empty {
       color: var(--text-muted, #6c7680);
       padding: 28px 16px;
@@ -531,6 +537,39 @@
       max-height: 180px;
       max-width: 220px;
       object-fit: contain;
+  }
+
+  .maintenance-attachment-figure {
+      width: 180px;
+      margin: 0;
+  }
+
+  .maintenance-attachment-frame {
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #f6f7f9;
+  }
+
+  .maintenance-attachment-image {
+      width: 170px;
+      height: 170px;
+      object-fit: contain;
+      transition: transform 0.2s ease;
+  }
+
+  .maintenance-attachment-controls {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+  }
+
+  .maintenance-attachment-controls button {
+      padding: 2px 8px;
   }
 
   .checklist-preview-group {
@@ -3775,10 +3814,16 @@
                           <div class="d-flex flex-wrap" style="gap: 16px;">
                               {% if issue.attachments && issue.attachments.length %}
                               {% for attachment in issue.attachments %}
-                              <figure>
-                                  <a href="{{ attachment.image }}" target="_blank" rel="noopener">
-                                      <img src="{{ attachment.image }}" class="maintenance-inline-image">
-                                  </a>
+                              <figure class="maintenance-attachment-figure">
+                                  <div class="maintenance-attachment-frame">
+                                      <a href="{{ attachment.image }}" target="_blank" rel="noopener">
+                                          <img src="{{ attachment.image }}" class="maintenance-inline-image maintenance-attachment-image" alt="{{ attachment.caption or 'Attached image' }}">
+                                      </a>
+                                  </div>
+                                  <div class="maintenance-attachment-controls">
+                                      <button type="button" class="btn btn-xs btn-default maintenance-rotate-image" data-direction="-90" title="Rotate left" aria-label="Rotate image left">↶</button>
+                                      <button type="button" class="btn btn-xs btn-default maintenance-rotate-image" data-direction="90" title="Rotate right" aria-label="Rotate image right">↷</button>
+                                  </div>
                                   {% if attachment.caption %}<figcaption>{{ attachment.caption }}</figcaption>{% endif %}
                               </figure>
                               {% endfor %}
@@ -3810,7 +3855,7 @@
 
                       <div class="tab-pane fade" id="inline-notes-{{ issue.name }}">
                           {% if issue.service_tech_notes %}
-                          <p>{{ issue.service_tech_notes }}</p>
+                          <p class="maintenance-technician-notes">{{ issue.service_tech_notes }}</p>
                           {% else %}
                           <div class="maintenance-inline-empty">No technician notes are available.</div>
                           {% endif %}

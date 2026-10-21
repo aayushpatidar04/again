@@ -22,6 +22,57 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
    });
 
 
+   function enhanceMaintenanceAttachmentImages(root) {
+       $(root).find('.tab-pane[id*="attachments"] figure').each(function () {
+           const figure = $(this);
+           const image = figure.find('img.maintenance-inline-image').first();
+           if (!image.length) return;
+
+           figure.addClass('maintenance-attachment-figure');
+           image.addClass('maintenance-attachment-image');
+           if (!figure.children('.maintenance-attachment-frame').length) {
+               image.closest('a').wrap('<div class="maintenance-attachment-frame"></div>');
+           }
+           if (!figure.children('.maintenance-attachment-controls').length) {
+               figure.children('.maintenance-attachment-frame').after(
+                   '<div class="maintenance-attachment-controls">' +
+                   '<button type="button" class="btn btn-xs btn-default maintenance-rotate-image" data-direction="-90" title="Rotate left" aria-label="Rotate image left">↶</button>' +
+                   '<button type="button" class="btn btn-xs btn-default maintenance-rotate-image" data-direction="90" title="Rotate right" aria-label="Rotate image right">↷</button>' +
+                   '</div>'
+               );
+           }
+
+           const imageUrl = image.attr('src') || '';
+           let rotation = 0;
+           try {
+               rotation = Number(window.localStorage.getItem('bms-attachment-rotation:' + imageUrl)) || 0;
+           } catch (error) {
+               // Rotation remains available when browser storage is disabled.
+           }
+           image.attr('data-rotation', rotation).css('transform', 'rotate(' + rotation + 'deg)');
+       });
+   }
+
+   $(page.body).on('click', '.maintenance-rotate-image', function (event) {
+       event.preventDefault();
+       event.stopPropagation();
+       const image = $(this).closest('.maintenance-attachment-figure')
+           .find('.maintenance-attachment-image').first();
+       if (!image.length) return;
+
+       const imageUrl = image.attr('src') || '';
+       const direction = Number($(this).attr('data-direction')) || 0;
+       const rotation = (Number(image.attr('data-rotation') || 0) + direction + 360) % 360;
+       $(page.body).find('.maintenance-attachment-image').filter(function () {
+           return $(this).attr('src') === imageUrl;
+       }).attr('data-rotation', rotation).css('transform', 'rotate(' + rotation + 'deg)');
+       try {
+           window.localStorage.setItem('bms-attachment-rotation:' + imageUrl, String(rotation));
+       } catch (error) {
+           // The current view still rotates when browser storage is disabled.
+       }
+   });
+
    const scheduleBoardRoutes = [
        { label: __('Today'), route: '/app/schedule-board-today' },
        { label: __('Tomorrow'), route: '/app/schedule-tomorrow' },
@@ -1217,6 +1268,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
        callback: function (r) {
            if (r.message) {
                $(frappe.render_template("schedule_board_last7", r.message, r.issues)).appendTo(page.body);
+               enhanceMaintenanceAttachmentImages(page.body);
                hydrateTechnicianAvatars();
                hydrateRichTextDescriptions();
                applyVisitFilters();
@@ -2294,7 +2346,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
                : emptyDetail('No attached images are available.');
            const symptomRequestCount = (data.symptom_requests || []).length;
            const requestsBody = table(['Item Code', 'Symptom Code', 'Resolution', 'Image', 'Status', 'Action'], data.symptom_requests || [], (row) => `<tr><td>${row.item_code ? visitMasterLink('item', row.item_code) : 'Not specified'}</td><td>${escapeDetailsHtml(row.symptom_code || '')}</td><td>${escapeDetailsHtml(row.resolution || '')}</td><td>${row.image ? imageCell(row.image, 'Symptom request image') : ''}</td><td>${escapeDetailsHtml(row.status || '')}</td><td>${visit.can_write && row.status === 'UnApproved' ? `<button type="button" class="btn btn-xs btn-primary approve-visit-symptom-request" data-visit="${escapeDetailsHtml(visit.name || '')}" data-request="${escapeDetailsHtml(row.name || '')}">Approve</button>` : ''}</td></tr>`, 'No symptom requests are available.');
-           const notesBody = visit.service_tech_notes ? `<p>${escapeDetailsHtml(visit.service_tech_notes)}</p>` : emptyDetail('No technician notes are available.');
+           const notesBody = visit.service_tech_notes ? `<p class="maintenance-technician-notes">${escapeDetailsHtml(visit.service_tech_notes)}</p>` : emptyDetail('No technician notes are available.');
            const tabs = [
                ['details', 'Details', detailsBodyWithRichText],
                ['checklist', 'Checklist Tree', renderChecklistDetails(data)],
@@ -2340,6 +2392,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
 
            if (maintenanceVisitDetailsCache.has(issueId)) {
                content.html(maintenanceVisitDetailsCache.get(issueId));
+               enhanceMaintenanceAttachmentImages(content);
                if (activeTab) content.find('.nav-link[aria-controls="visit-tab-' + activeTab + '"]').trigger('click');
                return;
            }
@@ -2353,6 +2406,7 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
                    const rendered = renderMaintenanceVisitDetails(response.message);
                    maintenanceVisitDetailsCache.set(issueId, rendered);
                    content.html(rendered);
+                   enhanceMaintenanceAttachmentImages(content);
                    if (activeTab) content.find('.nav-link[aria-controls="visit-tab-' + activeTab + '"]').trigger('click');
                },
                error: function () {
