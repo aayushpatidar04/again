@@ -3240,6 +3240,141 @@
           overflow-y: auto;
       }
   }
+
+  .territory-missing-disclosure {
+      margin: 0 0 18px;
+  }
+
+  .territory-missing-disclosure > summary {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 10px;
+      color: #344054;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 600;
+      gap: 9px;
+      list-style: none;
+      padding: 9px 12px;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .territory-missing-disclosure > summary::-webkit-details-marker { display: none; }
+  .territory-missing-disclosure > summary:hover,
+  .territory-missing-disclosure[open] > summary {
+      background: #f9fafb;
+      border-color: #d0d5dd;
+  }
+  .territory-missing-disclosure > summary:focus-visible {
+      outline: 2px solid #b42318;
+      outline-offset: 2px;
+  }
+  .territory-missing-indicator {
+      background: #f79009;
+      border-radius: 50%;
+      height: 7px;
+      width: 7px;
+  }
+  .territory-missing-count {
+      background: #fff4ed;
+      border-radius: 999px;
+      color: #b54708;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 5px 7px;
+  }
+  .territory-missing-chevron {
+      border-bottom: 1.5px solid #667085;
+      border-right: 1.5px solid #667085;
+      height: 6px;
+      margin: -3px 2px 0 3px;
+      transform: rotate(45deg);
+      transition: transform 0.15s ease;
+      width: 6px;
+  }
+  .territory-missing-disclosure[open] .territory-missing-chevron {
+      margin-top: 3px;
+      transform: rotate(225deg);
+  }
+  .territory-missing-panel {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(16, 24, 40, 0.06);
+      margin-top: 10px;
+      overflow: hidden;
+  }
+  .territory-missing-panel-header {
+      border-bottom: 1px solid #eaecf0;
+      padding: 15px 18px;
+  }
+  .territory-missing-panel-header h4 {
+      color: #1d2939;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 3px;
+  }
+  .territory-missing-panel-header p {
+      color: #667085;
+      font-size: 12px;
+      margin: 0;
+  }
+  .territory-missing-list {
+      max-height: 360px;
+      overflow-y: auto;
+  }
+  .territory-missing-row {
+      align-items: center;
+      border-top: 1px solid #f2f4f7;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      padding: 12px 18px;
+  }
+  .territory-missing-row:first-child { border-top: 0; }
+  .territory-missing-row > a {
+      color: #175cd3;
+      flex: 0 0 180px;
+      font-weight: 600;
+  }
+  .territory-missing-type { color: #475467; flex: 0 0 150px; font-size: 12px; }
+  .territory-missing-party {
+      color: #344054;
+      flex: 1 1 200px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+  .territory-missing-date { color: #667085; flex: 0 0 100px; font-size: 12px; }
+  .territory-missing-actions { display: flex; flex: 0 0 auto; gap: 8px; margin-left: auto; }
+  .missing-visit-territory {
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      color: #344054;
+      font-size: 12px;
+      min-height: 32px;
+      width: 170px;
+  }
+  .territory-missing-actions .btn {
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      min-height: 32px;
+      white-space: nowrap;
+  }
+  @media (max-width: 760px) {
+      .territory-missing-row > a,
+      .territory-missing-type,
+      .territory-missing-date { flex-basis: auto; }
+      .territory-missing-party { flex-basis: 100%; }
+      .territory-missing-actions { margin-left: 0; width: 100%; }
+      .missing-visit-territory { flex: 1 1 auto; min-width: 0; }
+  }
 </style>
 <div class="schedule-board-workspace" id="schedule-board-workspace" data-board-date="{{ board_date }}">
 <div class="schedule-board-canvas">
@@ -3304,27 +3439,39 @@
           </div>
       </div>
       {% if missing_territory_visits.length %}
-      <section class="territory-missing-panel" aria-label="Territory missing visits" style="margin: 0 0 16px; padding: 14px; border: 1px solid #e8c98a; border-radius: 10px; background: #fffaf0;">
-          <h4 style="margin: 0 0 4px;">Territory missing ({{ missing_territory_visits.length }})</h4>
-          <p style="margin: 0 0 10px;">These visits are visible to everyone on the board until a Territory is selected.</p>
-          <div style="max-height: 260px; overflow-y: auto;">
-              {% for visit in missing_territory_visits %}
-              <div class="territory-missing-row" data-visit="{{ visit.name }}" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid #eadbb9;">
-                  <a href="/app/maintenance-visit/{{ visit.name }}" target="_blank" rel="noopener">{{ visit.name }}</a>
-                  <span>{{ visit.maintenance_type || "Not specified" }}</span>
-                  <span>{{ visit.customer || visit.custom_lead || "No customer or lead" }}</span>
-                  <span>{{ visit.mntc_date || "No date" }}</span>
-                  <select class="missing-visit-territory" aria-label="Territory for {{ visit.name }}" style="min-width: 160px;">
-                      <option value="">Select Territory</option>
-                      {% for territory in territory_options %}
-                      <option value="{{ territory }}">{{ territory }}</option>
-                      {% endfor %}
-                  </select>
-                  <button type="button" class="set-missing-visit-territory btn btn-sm btn-primary">Save Territory</button>
+      <details class="territory-missing-disclosure">
+          <summary aria-label="Show visits with missing Territory">
+              <span class="territory-missing-indicator" aria-hidden="true"></span>
+              Territory missing
+              <span class="territory-missing-count">{{ missing_territory_visits.length }}</span>
+              <span class="territory-missing-chevron" aria-hidden="true"></span>
+          </summary>
+          <section class="territory-missing-panel" aria-label="Territory missing visits">
+              <div class="territory-missing-panel-header">
+                  <h4>Visits without a Territory</h4>
+                  <p>Visible to everyone on the board until a Territory is selected.</p>
               </div>
-              {% endfor %}
-          </div>
-      </section>
+              <div class="territory-missing-list">
+                  {% for visit in missing_territory_visits %}
+                  <div class="territory-missing-row" data-visit="{{ visit.name }}">
+                      <a href="/app/maintenance-visit/{{ visit.name }}" target="_blank" rel="noopener">{{ visit.name }}</a>
+                      <span class="territory-missing-type">{{ visit.maintenance_type || "Not specified" }}</span>
+                      <span class="territory-missing-party" title="{{ visit.customer || visit.custom_lead || 'No customer or lead' }}">{{ visit.customer || visit.custom_lead || "No customer or lead" }}</span>
+                      <span class="territory-missing-date">{{ visit.mntc_date || "No date" }}</span>
+                      <div class="territory-missing-actions">
+                          <select class="missing-visit-territory" aria-label="Territory for {{ visit.name }}">
+                              <option value="">Select Territory</option>
+                              {% for territory in territory_options %}
+                              <option value="{{ territory }}">{{ territory }}</option>
+                              {% endfor %}
+                          </select>
+                          <button type="button" class="set-missing-visit-territory btn btn-sm btn-primary">Save</button>
+                      </div>
+                  </div>
+                  {% endfor %}
+              </div>
+          </section>
+      </details>
       {% endif %}
       <div class="visit-list-toolbar">
           <div>
