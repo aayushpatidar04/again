@@ -35,6 +35,42 @@ def _get_schedule_board_scope():
     return {"is_admin": False, "territories": sorted(set(territories))}
 
 
+def get_missing_territory_visits():
+    """A shared triage list for users who can access a schedule board."""
+    _get_schedule_board_scope()
+    return frappe.get_all(
+        "Maintenance Visit",
+        filters={"territory": ["is", "not set"], "docstatus": ["!=", 2]},
+        fields=["name", "maintenance_type", "customer", "custom_lead", "mntc_date"],
+        order_by="creation desc",
+        limit_page_length=500,
+    )
+
+
+@frappe.whitelist()
+def set_missing_visit_territory(visit_name, territory):
+    """Let a board user route a still-unassigned visit to their territory."""
+    scope = _get_schedule_board_scope()
+    territory = (territory or "").strip()
+    if not territory or not frappe.db.exists("Territory", territory):
+        frappe.throw(_("Select a valid Territory."), frappe.ValidationError)
+    if not scope["is_admin"] and territory not in scope["territories"]:
+        frappe.throw(_("You cannot assign visits to this Territory."), frappe.PermissionError)
+
+    visit = frappe.db.get_value(
+        "Maintenance Visit", visit_name, ["territory", "docstatus"], as_dict=True
+    )
+    if not visit or visit.docstatus == 2:
+        frappe.throw(_("Maintenance Visit not found."), frappe.DoesNotExistError)
+    if visit.territory:
+        frappe.throw(_("This visit already has a Territory. Refresh the board."))
+
+    # The narrow board action is authorized above even when a blank territory
+    # prevents the coordinator from opening the normal Visit form.
+    frappe.db.set_value("Maintenance Visit", visit_name, "territory", territory)
+    return {"name": visit_name, "territory": territory}
+
+
 def assert_visible_schedule_board_technician(technician, scope=None):
     """Deny access to schedules for technicians outside the current board scope."""
     scope = scope or _get_schedule_board_scope()

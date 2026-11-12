@@ -7,6 +7,7 @@ from field_service_management.field_service_management.page.api import (
     _get_schedule_board_scope,
     assert_editable_schedule_board_visit,
     assert_visible_schedule_board_technician,
+    get_missing_territory_visits,
     get_visible_schedule_board_visit_names,
 )
 from field_service_management.field_service_management.page.schedule_board_lunch import (
@@ -544,6 +545,7 @@ def get_context(context=None):
 
 
  context["issues"] = issues
+ context["missing_territory_visits"] = get_missing_territory_visits()
  context["territory_options"] = territory_options
  context["lead_issues"] = lead_issues
  completion_field = frappe.get_meta("Maintenance Visit").get_field("completion_status")

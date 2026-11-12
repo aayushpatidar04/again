@@ -1685,6 +1685,31 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
 
        $(document).on('input', '#visit-search-filter, #customer-search-filter', applyVisitFilters);
        $(document).on('change', '#visit-status-filter, #visit-type-filter, #visit-territory-filter', applyVisitFilters);
+       $(document).off('click.missingTerritory', '.set-missing-visit-territory')
+           .on('click.missingTerritory', '.set-missing-visit-territory', function () {
+               const button = $(this);
+               const row = button.closest('.territory-missing-row');
+               const territory = String(row.find('.missing-visit-territory').val() || '');
+               if (!territory) {
+                   frappe.msgprint(__('Please select a Territory.'));
+                   return;
+               }
+               button.prop('disabled', true);
+               frappe.call({
+                   method: 'field_service_management.field_service_management.page.api.set_missing_visit_territory',
+                   args: { visit_name: row.attr('data-visit'), territory: territory },
+                   callback(response) {
+                       if (response.message && response.message.name) {
+                           window.location.reload();
+                       } else {
+                           button.prop('disabled', false);
+                       }
+                   },
+                   error() {
+                       button.prop('disabled', false);
+                   }
+               });
+           });
        $(document).on('change', '#visit-assignment-filter', function () {
            loadVisitQueueAssignment(String($(this).val() || 'unassigned'));
        });
