@@ -1668,6 +1668,19 @@ frappe.pages['schedule-board-yeste'].on_page_load = function (wrapper) {
 
        $(document).on('input', '#visit-search-filter, #customer-search-filter', applyVisitFilters);
        $(document).on('change', '#visit-status-filter, #visit-type-filter, #visit-territory-filter', applyVisitFilters);
+       $(document).off('click.missingTerritoryOpen', '.territory-missing-trigger')
+           .on('click.missingTerritoryOpen', '.territory-missing-trigger', function () {
+               const dialog = $(this).closest('.schedule-board-canvas').find('.territory-missing-dialog').get(0);
+               if (dialog && !dialog.open) dialog.showModal();
+           });
+       $(document).off('click.missingTerritoryClose', '.territory-missing-close')
+           .on('click.missingTerritoryClose', '.territory-missing-close', function () {
+               $(this).closest('.territory-missing-dialog').get(0).close();
+           });
+       $(document).off('click.missingTerritoryBackdrop', '.territory-missing-dialog')
+           .on('click.missingTerritoryBackdrop', '.territory-missing-dialog', function (event) {
+               if (event.target === this) this.close();
+           });
        $(document).off('click.missingTerritory', '.set-missing-visit-territory')
            .on('click.missingTerritory', '.set-missing-visit-territory', function () {
                const button = $(this);
