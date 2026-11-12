@@ -3456,7 +3456,7 @@
                   <div class="territory-missing-row" data-visit="{{ visit.name }}">
                       <a href="/app/maintenance-visit/{{ visit.name }}" target="_blank" rel="noopener">{{ visit.name }}</a>
                       <span class="territory-missing-type">{{ visit.maintenance_type || "Not specified" }}</span>
-                      <span class="territory-missing-party" title="{{ visit.customer || visit.custom_lead || 'No customer or lead' }}">{{ visit.customer || visit.custom_lead || "No customer or lead" }}</span>
+                      <span class="territory-missing-party">{{ visit.customer || visit.custom_lead || "No customer or lead" }}</span>
                       <span class="territory-missing-date">{{ visit.mntc_date || "No date" }}</span>
                       <div class="territory-missing-actions">
                           <select class="missing-visit-territory" aria-label="Territory for {{ visit.name }}">
