@@ -141,13 +141,12 @@ doctype_js = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Maintenance Visit": {
+        "on_update": "field_service_management.maintenance_visit_booking.queue_cancelled_visit_booking_cleanup",
+        "on_cancel": "field_service_management.maintenance_visit_booking.queue_cancelled_visit_booking_cleanup",
+    },
+}
 
 # Overriding Methods
 # ------------------------------

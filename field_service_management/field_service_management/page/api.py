@@ -40,7 +40,11 @@ def get_missing_territory_visits():
     _get_schedule_board_scope()
     return frappe.get_all(
         "Maintenance Visit",
-        filters={"territory": ["is", "not set"], "docstatus": ["!=", 2]},
+        filters={
+            "territory": ["is", "not set"],
+            "docstatus": ["!=", 2],
+            "status": ["!=", "Cancelled"],
+        },
         fields=["name", "maintenance_type", "customer", "custom_lead", "mntc_date"],
         order_by="creation desc",
         limit_page_length=500,
@@ -116,7 +120,7 @@ def _get_schedule_board_visit_rows(assignment_status, fields):
     if assignment_status not in {"unassigned", "assigned", "all"}:
         frappe.throw(_("Invalid visit assignment filter."), frappe.ValidationError)
 
-    conditions = ["mv.docstatus != 2"]
+    conditions = ["mv.docstatus != 2", "COALESCE(mv.status, '') != 'Cancelled'"]
     if assignment_status == "unassigned":
         conditions.extend(
             [
@@ -174,7 +178,26 @@ def get_visible_schedule_board_visit_names(visit_names):
             return set()
         filters["territory"] = ["in", scope["territories"]]
 
-    return set(frappe.get_all("Maintenance Visit", filters=filters, pluck="name"))
+    visits = frappe.get_all(
+        "Maintenance Visit", filters=filters, fields=["name", "status"]
+    )
+    return {visit.name for visit in visits if visit.status != "Cancelled"}
+
+
+def filter_active_schedule_board_bookings(bookings):
+    """Ignore stale bookings for cancelled visits without losing visit history."""
+    bookings = list(bookings or [])
+    visit_names = {booking.issue_code for booking in bookings if booking.issue_code}
+    if not visit_names:
+        return []
+
+    visits = frappe.get_all(
+        "Maintenance Visit",
+        filters={"name": ["in", list(visit_names)], "docstatus": ["<", 2]},
+        fields=["name", "status"],
+    )
+    active_names = {visit.name for visit in visits if visit.status != "Cancelled"}
+    return [booking for booking in bookings if booking.issue_code in active_names]
 
 
 def assert_editable_schedule_board_visit(visit_name):

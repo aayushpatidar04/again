@@ -7,6 +7,7 @@ from field_service_management.field_service_management.page.api import (
     _get_schedule_board_scope,
     assert_editable_schedule_board_visit,
     assert_visible_schedule_board_technician,
+    filter_active_schedule_board_bookings,
     get_missing_territory_visits,
     get_visible_schedule_board_visit_names,
 )
@@ -592,6 +593,7 @@ def get_context(context=None, board_date=None):
      FROM `tabMaintenance Visit`
      WHERE mntc_date = %s
        AND docstatus != 2
+       AND COALESCE(status, '') != 'Cancelled'
      """,
      (date,),
      as_dict=True,
@@ -614,6 +616,7 @@ def get_context(context=None, board_date=None):
      FROM `tabMaintenance Visit`
      WHERE mntc_date = %s
        AND docstatus != 2
+       AND COALESCE(status, '') != 'Cancelled'
      GROUP BY COALESCE(NULLIF(maintenance_type, ''), 'Not specified')
      """,
      (date,),
@@ -665,6 +668,7 @@ def get_context(context=None, board_date=None):
      fields=["issue_code", "stime", "etime", "technician"],
      order_by="technician, stime",
  )
+ assigned_tasks_today = filter_active_schedule_board_bookings(assigned_tasks_today)
  task_issue_codes = {task.issue_code for task in assigned_tasks_today if task.issue_code}
  visible_visit_names = (
      get_visible_schedule_board_visit_names(task_issue_codes)
@@ -1370,6 +1374,7 @@ def get_scheduling_conflicts(technician, date, stime=None, etime=None, exclude_i
         fields=["issue_code", "stime", "etime"],
         order_by="stime asc",
     )
+    assigned_tasks = filter_active_schedule_board_bookings(assigned_tasks)
     visible_booking_names = get_visible_schedule_board_visit_names(
         task.issue_code for task in assigned_tasks if task.issue_code
     )
