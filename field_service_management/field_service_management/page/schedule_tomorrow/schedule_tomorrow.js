@@ -2850,6 +2850,18 @@ frappe.pages['schedule-tomorrow'].on_page_load = function (wrapper) {
                    field.prop('disabled', false);
                    maintenanceVisitDetailsCache.delete(visitName);
                    frappe.show_alert({ message: __('Visit status updated'), indicator: 'green' });
+                   if (savedStatus !== 'Pending') {
+                       if (unassignedVisitQueueMarkup !== null) {
+                           const cachedQueue = document.createElement('div');
+                           cachedQueue.innerHTML = unassignedVisitQueueMarkup;
+                           cachedQueue.querySelectorAll('.horizontal-visit-row').forEach((row) => {
+                               if (row.getAttribute('data-issue') === visitName) row.remove();
+                           });
+                           unassignedVisitQueueMarkup = cachedQueue.innerHTML;
+                       }
+                       visitRow.remove();
+                       applyVisitFilters();
+                   }
                },
                error: function () {
                    field.val(previousStatus);

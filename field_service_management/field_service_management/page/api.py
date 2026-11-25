@@ -42,7 +42,7 @@ def get_missing_territory_visits():
         "Maintenance Visit",
         filters={
             "territory": ["is", "not set"],
-            "docstatus": ["!=", 2],
+            "docstatus": ["<", 2],
             "status": ["!=", "Cancelled"],
         },
         fields=["name", "maintenance_type", "customer", "custom_lead", "mntc_date"],
@@ -120,7 +120,11 @@ def _get_schedule_board_visit_rows(assignment_status, fields):
     if assignment_status not in {"unassigned", "assigned", "all"}:
         frappe.throw(_("Invalid visit assignment filter."), frappe.ValidationError)
 
-    conditions = ["mv.docstatus != 2", "COALESCE(mv.status, '') != 'Cancelled'"]
+    conditions = [
+        "mv.docstatus < 2",
+        "COALESCE(mv.status, '') != 'Cancelled'",
+        "COALESCE(NULLIF(TRIM(mv.completion_status), ''), 'Pending') = 'Pending'",
+    ]
     if assignment_status == "unassigned":
         conditions.extend(
             [

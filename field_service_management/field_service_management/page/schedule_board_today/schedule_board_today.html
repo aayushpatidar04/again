@@ -3486,7 +3486,7 @@
       <div class="visit-list-toolbar">
           <div>
               <h4 class="board-section-title" id="visit-list-title">Unassigned visits</h4>
-              <p class="board-section-subtitle">Filter visits by status, type, or assignment; drag unassigned visits to today’s calendar.</p>
+              <p class="board-section-subtitle">Filter pending visits by type, or assignment; drag unassigned visits to today’s calendar.</p>
           </div>
           <div class="visit-filter-group" aria-label="Visit filters">
               <div class="visit-search-wrap">
@@ -3497,7 +3497,7 @@
                   <input id="customer-search-filter" class="visit-filter-control" type="search"
                       placeholder="Search customer or lead" aria-label="Search by customer or lead">
               </div>
-              <select id="visit-status-filter" class="visit-filter-control" aria-label="Filter by completion status">
+              <select id="visit-status-filter" class="visit-filter-control" aria-label="Available completion statuses" hidden>
                   <option value="">All statuses</option>
                   <option value="Pending">Pending</option>
                   {% for status_option in completion_status_options %}
