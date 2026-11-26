@@ -2668,6 +2668,32 @@ frappe.pages['schedule-board-yeste'].on_page_load = function (wrapper) {
            $('#visit-assign-error').empty();
        }
 
+       function withServiceTerritory(visitId, continueScheduling) {
+           const card = $('.maintenance-visit-card[data-issue="' + visitId + '"]');
+           if (!card.length || String(card.attr('data-territory') || '').trim()) {
+               continueScheduling();
+               return;
+           }
+           frappe.prompt([{
+               fieldname: 'territory',
+               label: __('Territory of the service location'),
+               fieldtype: 'Link',
+               options: 'Territory',
+               reqd: 1
+           }], function (values) {
+               frappe.call({
+                   method: 'field_service_management.field_service_management.page.api.set_missing_visit_territory',
+                   args: { visit_name: visitId, territory: values.territory },
+                   callback: function (response) {
+                       if (response.message && response.message.territory) {
+                           card.attr('data-territory', response.message.territory);
+                           continueScheduling();
+                       }
+                   }
+               });
+           }, __('Select service Territory'), __('Continue scheduling'));
+       }
+
        function openVisitAssignmentDialog(visitId) {
            const modal = $('#visit-assign-modal');
            const row = $('.maintenance-visit-card[data-issue="' + visitId + '"]');
@@ -2693,7 +2719,11 @@ frappe.pages['schedule-board-yeste'].on_page_load = function (wrapper) {
            event.preventDefault();
            event.stopPropagation();
            const visitId = String($(this).attr('data-visit') || '').trim();
-           if (visitId) openVisitAssignmentDialog(visitId);
+           if (visitId) {
+               withServiceTerritory(visitId, function () {
+                   openVisitAssignmentDialog(visitId);
+               });
+           }
        });
 
        $(document).on('click', '#close-visit-assign, #cancel-visit-assign', function (event) {
@@ -3264,7 +3294,9 @@ frappe.pages['schedule-board-yeste'].on_page_load = function (wrapper) {
 
 
                if (card.data('type') === 'type1') {
-                   openModal(cardId, slotTime, tech, not_available);
+                   withServiceTerritory(cardId, function () {
+                       openModal(cardId, slotTime, tech, not_available);
+                   });
                } else if (card.data('type') === 'type2') {
                    const duration = card.data('duration');
                    openModal2(cardId, slotTime, tech, duration, not_available);

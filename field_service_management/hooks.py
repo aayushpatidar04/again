@@ -143,6 +143,7 @@ doctype_js = {
 
 doc_events = {
     "Maintenance Visit": {
+        "validate": "field_service_management.maintenance_visit_booking.validate_booked_visit_territory",
         "on_update": "field_service_management.maintenance_visit_booking.queue_cancelled_visit_booking_cleanup",
         "on_cancel": "field_service_management.maintenance_visit_booking.queue_cancelled_visit_booking_cleanup",
     },

@@ -204,7 +204,7 @@ def filter_active_schedule_board_bookings(bookings):
     return [booking for booking in bookings if booking.issue_code in active_names]
 
 
-def assert_editable_schedule_board_visit(visit_name):
+def assert_editable_schedule_board_visit(visit_name, require_territory=False):
     """Require board visibility and document write access for assignment changes."""
     visit_name = (visit_name or "").strip()
     if not visit_name or visit_name not in get_visible_schedule_board_visit_names([visit_name]):
@@ -213,6 +213,11 @@ def assert_editable_schedule_board_visit(visit_name):
     visit = frappe.get_doc("Maintenance Visit", visit_name)
     if not frappe.has_permission("Maintenance Visit", "write", doc=visit):
         frappe.throw(_("You cannot change this Maintenance Visit's assignment."), frappe.PermissionError)
+    if require_territory and not visit.territory:
+        frappe.throw(
+            _("Select the service location's Territory before scheduling this visit."),
+            frappe.ValidationError,
+        )
     return visit
 
 

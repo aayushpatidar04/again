@@ -1485,7 +1485,7 @@ def save_form_data(form_data):
      form_data = json.loads(form_data)
      technicians = form_data["technicians"]
      code = form_data["code"]
-     assert_editable_schedule_board_visit(code)
+     assert_editable_schedule_board_visit(code, require_territory=True)
      date = form_data["date"]
      etime = form_data["etime"]
      stime = form_data["stime"]
@@ -1572,7 +1572,7 @@ def update_form_data(form_data):
      form_data = json.loads(form_data)
      technicians = form_data["technicians"]
      code = form_data["code"]
-     assert_editable_schedule_board_visit(code)
+     assert_editable_schedule_board_visit(code, require_territory=True)
      date = form_data["date"]
      etime = form_data["etime"]
      stime = form_data["stime"]

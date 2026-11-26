@@ -1,6 +1,18 @@
 """Release technician bookings when a Maintenance Visit is cancelled."""
 
 import frappe
+from frappe import _
+
+
+def validate_booked_visit_territory(doc, method=None):
+    """Keep assigned visits visible to their service coordinator after edits."""
+    if doc.is_new() or doc.territory or doc.docstatus == 2 or doc.status == "Cancelled":
+        return
+    if frappe.db.exists("Assigned Tasks", {"issue_code": doc.name}):
+        frappe.throw(
+            _("This visit is booked. Select the service location's Territory before saving."),
+            frappe.ValidationError,
+        )
 
 
 def queue_cancelled_visit_booking_cleanup(doc, method=None):
