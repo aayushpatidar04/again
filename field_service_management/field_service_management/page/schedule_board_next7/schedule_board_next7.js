@@ -2692,6 +2692,10 @@ frappe.pages['schedule-board-next7'].on_page_load = function (wrapper) {
                return;
            }
            frappe.prompt([{
+               fieldname: 'territory_guidance',
+               fieldtype: 'HTML',
+               options: '<div class="alert alert-info">' + __('Before assigning a technician, choose the Territory where the service will take place. It may differ from the customer’s sales Territory.') + '</div>'
+           }, {
                fieldname: 'territory',
                label: __('Territory of the service location'),
                fieldtype: 'Link',
