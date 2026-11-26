@@ -3307,8 +3307,10 @@ frappe.pages['schedule-board-last7'].on_page_load = function (wrapper) {
                const slotTime = dropZone.data('time');
                const slotDate = String(dropZone.attr('data-date') || '').trim();
                const tech = dropZone.data('tech');
-               const card = $(`#${cardId}`);
+               const cardElement = cardId ? document.getElementById(cardId) : null;
+               const card = cardElement ? $(cardElement) : $();
                dropZone.removeClass('drop-hover');
+               if (!card.length) return;
 
 
                if (card.data('type') === 'type1') {

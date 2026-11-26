@@ -80,7 +80,7 @@ def get_context(context=None, board_date=None):
      # are loaded from Assigned Tasks below.
      technicians = frappe.get_all(
          "User",
-         filters={"role_profile_name": "Service Technician Role Profile"},
+         filters={"role_profile_name": "Service Technician Role Profile", "enabled": 1},
          fields=["email", "user_image", "full_name"],
      )
  if role_profile == "Service Coordinator Profile":
@@ -101,7 +101,7 @@ def get_context(context=None, board_date=None):
      # technician calendar uses Assigned Tasks and remains unchanged.
      technicians = frappe.get_all(
          "User",
-         filters={"role_profile_name": "Service Technician Role Profile"},
+         filters={"role_profile_name": "Service Technician Role Profile", "enabled": 1},
          fields=["email", "user_image", "full_name"],
      )
      # OLD: A separate User Permission query ran for every technician.
@@ -1345,7 +1345,21 @@ def get_scheduling_conflicts(technician, date, stime=None, etime=None, exclude_i
     scope = _get_schedule_board_scope()
     if not technician or not date:
         return {"technician": technician, "intervals": [], "conflicts": [], "working_hours": {"start": "09:00", "end": "20:00"}}
-    assert_visible_schedule_board_technician(technician, scope)
+    try:
+        assert_visible_schedule_board_technician(technician, scope)
+    except frappe.PermissionError:
+        return {
+            "technician": technician,
+            "intervals": [],
+            "conflicts": [{
+                "kind": "unavailable",
+                "label": "Technician unavailable",
+                "detail": "Choose an active technician on this board",
+                "start": "09:00",
+                "end": "20:00",
+            }],
+            "working_hours": {"start": "09:00", "end": "20:00"},
+        }
 
     try:
         selected_date = datetime.strptime(str(date), "%Y-%m-%d").date()

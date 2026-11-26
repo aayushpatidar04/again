@@ -3289,8 +3289,10 @@ frappe.pages['schedule-board-yeste'].on_page_load = function (wrapper) {
                const not_available = dropZone.data('na');
                const slotTime = dropZone.data('time');
                const tech = dropZone.data('tech');
-               const card = $(`#${cardId}`);
+               const cardElement = cardId ? document.getElementById(cardId) : null;
+               const card = cardElement ? $(cardElement) : $();
                dropZone.removeClass('drop-hover');
+               if (!card.length) return;
 
 
                if (card.data('type') === 'type1') {
