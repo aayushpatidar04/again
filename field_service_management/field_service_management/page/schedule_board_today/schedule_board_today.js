@@ -2669,6 +2669,12 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
                continueScheduling();
                return;
            }
+           const territoryOptions = $('.territory-missing-dialog .missing-visit-territory').first()
+               .find('option').map(function () { return this.value; }).get().filter(Boolean);
+           if (!territoryOptions.length) {
+               frappe.msgprint(__('Open Territory missing and select the service Territory before scheduling.'));
+               return;
+           }
            frappe.prompt([{
                fieldname: 'territory_guidance',
                fieldtype: 'HTML',
@@ -2676,8 +2682,8 @@ frappe.pages['schedule-board-today'].on_page_load = function (wrapper) {
            }, {
                fieldname: 'territory',
                label: __('Territory of the service location'),
-               fieldtype: 'Link',
-               options: 'Territory',
+               fieldtype: 'Select',
+               options: [''].concat(territoryOptions).join('\n'),
                reqd: 1
            }], function (values) {
                frappe.call({
